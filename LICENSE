@@ -1,0 +1,243 @@
+WAIL SOFTWARE LICENSE AGREEMENT
+Version 1.0 — Effective August 27, 2026
+
+Copyright (c) 2026 WOVO, INC. All rights reserved.
+
+IMPORTANT — READ CAREFULLY.
+
+This WAIL Software License Agreement (the "Agreement") is a legally binding agreement between WOVO, INC., a Delaware corporation, doing business as WAIL ("WAIL", "Licensor", "we", "us", or "our"), and the individual or legal entity that downloads, installs, accesses, receives, activates, or uses the WAIL software ("you", "your", or "Licensee").
+
+BY DOWNLOADING, INSTALLING, ACTIVATING, ACCESSING, OR USING WAIL, OR BY AFFIRMATIVELY ACCEPTING THIS AGREEMENT, YOU AGREE TO BE BOUND BY THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT DOWNLOAD, INSTALL, ACTIVATE, ACCESS, OR USE WAIL.
+
+THE SOFTWARE IS LICENSED, NOT SOLD. WAIL RETAINS ALL RIGHTS NOT EXPRESSLY GRANTED UNDER THIS AGREEMENT.
+
+1. DEFINITIONS
+
+1.1 "Software" means the WAIL software, runtime components, command-line tools, libraries, binaries, source-visible components, obfuscated or compiled components, updates, patches, documentation, sample code expressly identified as part of WAIL, license-control components, and related materials supplied by WAIL.
+
+1.2 "Proprietary Components" means non-open-source portions of the Software, including without limitation components distributed under names such as "wail_private", licensing and entitlement logic, runtime-control logic, proprietary policy or decision logic, cryptographic or integrity-control implementations, and any obfuscated, compiled, packaged, or otherwise protected WAIL code.
+
+1.3 "License File" means a WAIL-issued license, entitlement, key, token, certificate, signed payload, activation record, or equivalent mechanism that specifies or enables permitted features, plan, term, runtime limits, trial rights, or other entitlements.
+
+1.4 "Plan" means a WAIL commercial or evaluation tier, including Developer, Pro, Enterprise, or a successor plan identified by WAIL.
+
+1.5 "Documentation" means documentation supplied or published by WAIL for use of the Software.
+
+1.6 "Third-Party Components" means software, libraries, models, services, or other materials supplied by third parties and incorporated into, bundled with, called by, or interoperating with the Software.
+
+2. LICENSE GRANT
+
+2.1 Subject to your continuing compliance with this Agreement and possession of a valid License File where required, WAIL grants you a limited, revocable, non-exclusive, non-transferable, non-sublicensable license during the applicable license term to install, integrate, and use the Software for your own development, testing, evaluation, and production purposes, including as part of products and services that you provide to your customers, within the technical and commercial limits of your Plan.
+
+2.2 Your permitted features, runtime count, intervention capabilities, retention rights, governance features, trial rights, and other technical entitlements are determined by the applicable Plan, License File, order, or written agreement with WAIL. Technical enforcement of those limits does not expand or reduce the legal scope of this Agreement.
+
+2.3 You may integrate and use the Software as part of your own products and services, including products and services made available to your customers. No right is granted to distribute, sublicense, resell, lease, license, host, or otherwise make the Software itself available to third parties as a standalone product or service, or to provide third parties with access to the Software independently of your own products or services, unless WAIL expressly agrees in writing.
+
+2.4 Enterprise or separately negotiated written terms signed by WAIL may supplement or supersede conflicting provisions of this Agreement to the extent expressly stated in those terms.
+
+3. DEVELOPER LICENSE AND PRO TRIAL
+
+3.1 Unless a different term is stated in the applicable License File or written offer, a newly issued Developer license is valid for one (1) year from issuance and must be renewed or replaced after expiration to continue licensed use.
+
+3.2 WAIL may include a one-time fourteen (14) day Pro trial with an eligible new Developer license. During an active Pro trial, the Software may temporarily enable Pro-level technical entitlements while the underlying Plan remains Developer.
+
+3.3 Unless WAIL expressly states otherwise at enrollment, the Pro trial does not automatically convert into a paid subscription and does not by itself authorize WAIL to charge you when the trial ends.
+
+3.4 A Pro trial is limited to one trial per eligible customer. You may not obtain repeated trials by reinstalling the Software, deleting or modifying local state, changing identifiers, creating duplicate or misleading accounts or identities, using virtual machines or other environments for the purpose of evading trial limits, or otherwise circumventing trial eligibility controls.
+
+3.5 WAIL may use reasonable technical and account-based measures to determine trial eligibility, prevent duplicate trials, and enforce license terms, subject to applicable law and WAIL's applicable privacy disclosures.
+
+3.6 When the Pro trial expires, Pro-level trial entitlements end automatically and the Software reverts to the entitlements of the underlying Developer Plan unless you obtain a valid Pro or Enterprise license.
+
+4. OWNERSHIP AND RESERVATION OF RIGHTS
+
+4.1 The Software is licensed, not sold. As between you and WAIL, WAIL and its licensors retain all right, title, and interest in and to the Software, Proprietary Components, Documentation, designs, architecture, source and object code, algorithms, inventions, trade secrets, know-how, trademarks, service marks, and all related intellectual-property rights.
+
+4.2 Possession of source-readable, source-visible, decompiled, extracted, obfuscated, packaged, or otherwise inspectable code does not transfer ownership and does not grant any license except the limited rights expressly stated in this Agreement.
+
+4.3 No rights are granted by implication, estoppel, exhaustion, or otherwise except to the extent such rights cannot lawfully be excluded.
+
+5. LICENSE RESTRICTIONS
+
+Except to the extent a restriction is prohibited by mandatory applicable law, you must not, and must not enable, assist, authorize, or permit any third party to:
+
+(a) sell, resell, sublicense, rent, lease, lend, assign, transfer, publish, redistribute, or otherwise provide the Software or Proprietary Components to any third party except as expressly authorized in writing by WAIL;
+
+(b) operate the Software as a standalone hosted, managed, bureau, outsourcing, time-sharing, or similar service for the benefit of third parties, except where your applicable Plan or written agreement expressly permits it;
+
+(c) copy the Software except for reasonable copies necessary for authorized installation, execution, backup, or disaster recovery;
+
+(d) modify, adapt, translate, merge, or create derivative works of Proprietary Components except where WAIL expressly authorizes such activity in writing;
+
+(e) reverse engineer, decompile, disassemble, decode, translate, reconstruct, extract, discover, derive, or attempt to derive source code, underlying structure, non-public algorithms, trade secrets, or internal implementation of Proprietary Components;
+
+(f) bypass, defeat, disable, remove, tamper with, circumvent, or work around any license key, License File, activation mechanism, runtime limit, plan restriction, entitlement check, expiration mechanism, signature check, integrity check, cryptographic control, code obfuscation, technical limitation, security mechanism, or other access or usage control in the Software;
+
+(g) alter, forge, clone, share, manufacture, or manipulate a License File, license key, entitlement, activation record, machine or installation identifier, trial record, cryptographic signature, audit artifact, integrity record, or other WAIL security or licensing data;
+
+(h) remove, conceal, alter, or obscure copyright, trademark, attribution, confidentiality, proprietary-rights, license, or other notices contained in the Software or Documentation;
+
+(i) use Proprietary Components, confidential information, or non-public implementation details to create, train, improve, assist, or commercialize a product or service that reproduces or substitutes for WAIL's proprietary runtime-control functionality, except to the extent such restriction is prohibited by applicable law;
+
+(j) disclose or provide non-public Proprietary Components or WAIL confidential information to a competitor or other unauthorized third party;
+
+(k) use the Software in violation of applicable law, sanctions, export-control requirements, or third-party rights; or
+
+(l) represent that WAIL sponsors, endorses, certifies, or is affiliated with you or your product without WAIL's prior written authorization.
+
+6. REVERSE ENGINEERING; INTEROPERABILITY; MANDATORY RIGHTS
+
+6.1 The restrictions in this Agreement apply to the maximum extent permitted by law. Nothing in this Agreement excludes or limits a right that applicable mandatory law does not permit the parties to exclude or limit.
+
+6.2 If applicable law gives you a non-waivable right to reverse engineer, decompile, disassemble, or circumvent a technological measure for interoperability or another legally protected purpose, you may exercise that right only to the minimum extent required by that law and subject to all statutory conditions.
+
+6.3 To the extent permitted by applicable law, information obtained through any legally permitted reverse engineering or decompilation may not be used for a purpose beyond the legally protected purpose, disclosed beyond what that purpose requires, or used to develop, produce, or market an infringing or substantially copied implementation of WAIL.
+
+6.4 Nothing in this Agreement is intended to prohibit legitimate activities expressly protected by 17 U.S.C. § 1201 or other mandatory law, including applicable statutory interoperability, encryption-research, security-testing, or similar exceptions, where all legal conditions for the exception are satisfied.
+
+7. TECHNICAL PROTECTION AND LICENSE ENFORCEMENT
+
+7.1 You acknowledge that WAIL may use License Files, cryptographic signatures, integrity verification, machine or installation identifiers, obfuscation, local state, entitlement checks, and other reasonable technical measures to protect the Software and enforce Plan limits.
+
+7.2 You may not intentionally interfere with those measures or falsify information used by them. An inability to bypass a technical limitation does not grant a right to bypass it.
+
+7.3 WAIL may refuse activation, disable unavailable features, revert expired trial entitlements, reject invalid or altered License Files, or suspend use of a compromised or fraudulently obtained license where reasonably necessary to enforce this Agreement.
+
+8. AUDIT ARTIFACTS AND CUSTOMER DATA
+
+8.1 As between you and WAIL, you retain rights you lawfully hold in your prompts, inputs, outputs, operational data, and customer-specific data processed through your authorized use of WAIL ("Customer Data").
+
+8.2 WAIL retains all rights in the Software, schemas, generic artifact structures, verification mechanisms, runtime-control methods, and other WAIL technology used to create or process audit artifacts.
+
+8.3 WAIL does not acquire ownership of Customer Data merely because the Software measures, records, signs, verifies, or analyzes it.
+
+8.4 You are responsible for ensuring that your collection and processing of Customer Data through the Software complies with applicable privacy, confidentiality, employment, security, and data-protection laws and with any notices or consents required for your use case.
+
+9. THIRD-PARTY AND OPEN-SOURCE COMPONENTS
+
+9.1 Third-Party Components may be governed by separate license terms. Those terms control solely with respect to the applicable Third-Party Component where required by law or the applicable third-party license.
+
+9.2 Nothing in this Agreement is intended to restrict rights granted to you under an applicable open-source license or to impose restrictions that such license prohibits.
+
+9.3 Third-party names, models, APIs, services, and trademarks remain the property of their respective owners. WAIL's interoperability with a third-party service does not imply sponsorship or endorsement.
+
+10. FEEDBACK
+
+If you voluntarily provide WAIL with suggestions, ideas, enhancement requests, or other feedback about the Software ("Feedback"), you grant WAIL a worldwide, perpetual, irrevocable, royalty-free, sublicensable right to use, reproduce, modify, commercialize, and otherwise exploit that Feedback without restriction or obligation to you, provided that this section does not transfer ownership of your Customer Data or confidential materials merely because they accompany Feedback.
+
+11. UPDATES, CHANGES, AND COMPATIBILITY
+
+11.1 WAIL may provide updates, patches, security fixes, feature changes, or new versions. An update may be subject to this Agreement or to updated terms presented with that update.
+
+11.2 WAIL does not warrant that every version will remain compatible with every provider, model, API, operating system, dependency, or third-party service.
+
+11.3 Material changes to paid subscription terms, if any, remain subject to applicable notice, consent, renewal, and consumer-protection requirements.
+
+12. CONFIDENTIALITY AND PROPRIETARY INFORMATION
+
+12.1 Non-public Proprietary Components, non-public technical information, license-generation materials, private keys, security designs, non-public documentation, and other information that is marked confidential or that a reasonable person would understand to be confidential constitute WAIL Confidential Information.
+
+12.2 You must protect WAIL Confidential Information using at least reasonable care and may use it only as necessary for your authorized use of the Software.
+
+12.3 Confidential Information does not include information that you can demonstrate: (a) became public without breach of an obligation; (b) was lawfully known to you without confidentiality obligation before disclosure; (c) was independently developed without use of WAIL Confidential Information; or (d) was lawfully received from a third party without confidentiality obligation.
+
+12.4 Nothing in this Agreement prohibits a disclosure that applicable law protects or requires. Where legally permitted, you should provide WAIL reasonable notice of compelled disclosure and reasonable assistance in seeking protective treatment.
+
+13. SECURITY AND RESPONSIBLE DISCLOSURE
+
+13.1 Nothing in this Agreement authorizes unauthorized access to systems, data, accounts, infrastructure, or third-party services.
+
+13.2 Security research involving WAIL must comply with applicable law and any WAIL vulnerability-disclosure or security-research policy then in effect. No provision of this Agreement eliminates rights or defenses that mandatory law provides to qualifying good-faith security research.
+
+14. EXPORT CONTROLS AND SANCTIONS
+
+14.1 The Software may be subject to United States and other applicable export-control, reexport, transfer, encryption, economic-sanctions, and trade laws. You agree to comply with laws applicable to your receipt, use, export, reexport, transfer, or provision of the Software.
+
+14.2 You must not knowingly export, reexport, transfer, provide, or use the Software where prohibited by applicable law, including to prohibited destinations, sanctioned parties, or prohibited end uses, without any authorization required by law.
+
+14.3 Nothing in this Agreement is a representation by WAIL that a particular export classification, license exception, or authorization applies to your transaction.
+
+15. TERM; EXPIRATION; TERMINATION
+
+15.1 This Agreement begins when you first accept it or download, install, activate, access, or use the Software, whichever occurs first, and continues until terminated.
+
+15.2 Your right to use features subject to a time-limited License File ends when that License File or applicable entitlement expires unless renewed or replaced.
+
+15.3 WAIL may terminate or suspend your license for a material breach of this Agreement. Where the breach is reasonably capable of cure and immediate suspension is not reasonably necessary to protect WAIL, its users, security, intellectual property, or legal obligations, WAIL may provide an opportunity to cure.
+
+15.4 License tampering, deliberate circumvention of technical protections, unauthorized redistribution, fraudulent trial acquisition, misuse of WAIL private keys or signatures, or material infringement of WAIL intellectual property may constitute grounds for immediate suspension or termination to the extent permitted by law.
+
+15.5 Upon termination or expiration of your license rights, you must cease unauthorized use of the affected Software and, where required by WAIL and permitted by applicable law, delete or destroy copies for which you no longer possess a valid license. Sections that by their nature should survive termination, including ownership, restrictions, confidentiality, disclaimers, liability limitations, and dispute provisions, survive.
+
+16. DISCLAIMER OF WARRANTIES
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE, DOCUMENTATION, TRIALS, AND RELATED MATERIALS ARE PROVIDED "AS IS" AND "AS AVAILABLE," WITH ALL FAULTS. WAIL AND ITS LICENSORS DISCLAIM ALL EXPRESS, IMPLIED, STATUTORY, AND OTHER WARRANTIES, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT, ACCURACY, RELIABILITY, AVAILABILITY, SECURITY, AND ERROR-FREE OR UNINTERRUPTED OPERATION.
+
+WAIL DOES NOT WARRANT THAT THE SOFTWARE WILL DETECT, PREVENT, MITIGATE, REROUTE, RECORD, OR CORRECT EVERY FAILURE, INCIDENT, MODEL ERROR, PROVIDER OUTAGE, SECURITY EVENT, POLICY VIOLATION, OR OTHER CONDITION. WAIL IS A TECHNICAL RUNTIME-CONTROL TOOL AND DOES NOT REPLACE YOUR OWN TESTING, MONITORING, SECURITY, SAFETY, COMPLIANCE, BUSINESS-CONTINUITY, OR PROFESSIONAL JUDGMENT.
+
+SOME JURISDICTIONS DO NOT ALLOW CERTAIN WARRANTY EXCLUSIONS, SO SOME OF THE ABOVE MAY NOT APPLY TO YOU.
+
+17. LIMITATION OF LIABILITY
+
+17.1 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, WAIL AND ITS AFFILIATES, LICENSORS, SUPPLIERS, OFFICERS, EMPLOYEES, AND AGENTS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE, OR CONSEQUENTIAL DAMAGES, OR FOR LOSS OF PROFITS, REVENUE, BUSINESS, GOODWILL, DATA, USE, OR BUSINESS INTERRUPTION, ARISING OUT OF OR RELATING TO THE SOFTWARE OR THIS AGREEMENT, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+17.2 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, WAIL'S AGGREGATE LIABILITY ARISING OUT OF OR RELATING TO THE SOFTWARE OR THIS AGREEMENT WILL NOT EXCEED THE GREATER OF: (A) THE AMOUNT YOU PAID TO WAIL FOR THE SOFTWARE DURING THE TWELVE (12) MONTHS IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO THE CLAIM; OR (B) ONE HUNDRED U.S. DOLLARS (US$100) IF YOU USED ONLY A FREE OR NO-COST PLAN.
+
+17.3 The exclusions and limitations in this section do not apply to liability that applicable law does not permit to be excluded or limited.
+
+18. INDEMNIFICATION FOR UNAUTHORIZED USE
+
+To the extent permitted by applicable law, if you are using the Software on behalf of a business or organization, that business or organization will defend and indemnify WAIL and its affiliates against third-party claims, damages, liabilities, costs, and reasonable legal fees arising from: (a) its unlawful use of the Software; (b) its Customer Data; (c) its material breach of this Agreement; or (d) its infringement or violation of a third party's rights through its use of the Software, except to the extent caused by WAIL's own breach, infringement, or unlawful conduct.
+
+19. NO HIGH-RISK RELIANCE
+
+Unless WAIL expressly agrees otherwise in a signed written agreement, the Software is not designed or warranted as the sole control for uses where failure could reasonably be expected to cause death, personal injury, catastrophic physical damage, or other consequences for which redundant and independently validated safety controls are required. You are responsible for appropriate human oversight, redundancy, fail-safe mechanisms, and domain-specific compliance for such uses.
+
+20. TRADEMARKS
+
+"WAIL", WAIL logos, product names, and related branding are trademarks or proprietary identifiers of WAIL or its affiliates. This Agreement does not grant you a trademark license except the limited right to identify the Software truthfully as part of your authorized use. You may not imply endorsement, alter WAIL branding, or register confusingly similar marks or domain names.
+
+21. ELECTRONIC ACCEPTANCE AND RECORDS
+
+21.1 You agree that this Agreement may be accepted electronically and that electronic records, License Files, order records, and affirmative acceptance records may be used to evidence the transaction to the extent permitted by applicable law.
+
+21.2 If WAIL presents an "I Agree", checkbox, activation, download, or similar affirmative acceptance mechanism, you must not proceed unless you have authority to accept this Agreement for yourself or the entity on whose behalf you act.
+
+22. GOVERNING LAW AND DISPUTES
+
+22.1 Unless mandatory applicable law requires otherwise or a signed written agreement states otherwise, this Agreement is governed by the laws of the State of Delaware, United States, without regard to its conflict-of-laws principles. The United Nations Convention on Contracts for the International Sale of Goods does not apply.
+
+22.2 Subject to mandatory applicable law, the state and federal courts located in the State of Delaware will have exclusive jurisdiction over disputes arising out of or relating to this Agreement, and each party consents to personal jurisdiction and venue in those courts.
+
+22.3 Nothing in this section prevents either party from seeking temporary, preliminary, or injunctive relief in any court of competent jurisdiction to protect intellectual property, confidential information, security, or against unauthorized access or circumvention.
+
+23. CONSUMER AND REGIONAL RIGHTS
+
+23.1 This Agreement does not exclude, restrict, or modify consumer guarantees, statutory warranties, cancellation rights, interoperability rights, privacy rights, or other protections that applicable law makes mandatory and non-waivable.
+
+23.2 If a provision of this Agreement conflicts with mandatory law applicable to you, that mandatory law controls only to the extent of the conflict, and the remaining provisions remain effective to the fullest extent permitted.
+
+24. ASSIGNMENT
+
+You may not assign or transfer this Agreement or your license rights without WAIL's prior written consent, except where applicable law prohibits that restriction. WAIL may assign this Agreement in connection with a merger, acquisition, corporate reorganization, financing, or sale of all or substantially all of the relevant business or assets, subject to applicable law.
+
+25. SEVERABILITY; WAIVER
+
+If any provision is held invalid, illegal, or unenforceable, it will be enforced to the maximum extent permissible and the remaining provisions will remain in effect. A failure or delay by WAIL to enforce a provision is not a waiver of that provision or any other right.
+
+26. ENTIRE AGREEMENT; ORDER OF PRECEDENCE
+
+This Agreement, together with the applicable License File, order form, plan terms, Documentation provisions expressly incorporated by reference, and any signed written agreement between you and WAIL, constitutes the agreement concerning the Software. If there is a conflict, a signed negotiated agreement controls over an order form; an order form controls over this Agreement only to the extent it expressly states different commercial terms; and applicable third-party license terms control solely for the relevant Third-Party Component where legally required.
+
+27. CHANGES TO THIS AGREEMENT
+
+WAIL may update this Agreement for future versions, renewals, purchases, or continued services. WAIL will not rely solely on this clause to impose a material retroactive reduction of rights where applicable law requires additional notice or consent. Where legally required, material changes will be presented with appropriate notice or acceptance.
+
+28. CONTACT
+
+Licensor: WOVO, INC., doing business as WAIL
+Website: https://wailinfra.com
+
+For licensing, legal, security, or support contact information, use the contact details published on the WAIL website or in the applicable order documentation.
+
+END OF WAIL SOFTWARE LICENSE AGREEMENT

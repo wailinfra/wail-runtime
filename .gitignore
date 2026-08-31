@@ -1,0 +1,106 @@
+# -----------------------------
+# PRIVATE SOURCE
+# -----------------------------
+wail_private/
+
+# -----------------------------
+# RUNTIME DATA
+# -----------------------------
+wail_audit/
+wail_state/
+traces/
+
+# -----------------------------
+# LICENSE / LOCAL STATE
+# -----------------------------
+wail.license
+wail_trial.lock
+
+# -----------------------------
+# SENSITIVE / LOCAL
+# -----------------------------
+.env
+*.env
+*.key
+
+# Private signing keys only
+keys/private.pem
+private.pem
+
+# -----------------------------
+# PYTHON
+# -----------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.venv/
+venv/
+
+# -----------------------------
+# TEST / TOOL CACHE
+# -----------------------------
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# -----------------------------
+# INTERNAL TESTING
+# -----------------------------
+internal_tests/
+regression/
+benchmarks/
+
+# -----------------------------
+# BUILD OUTPUT
+# -----------------------------
+build/
+dist/
+*.whl
+
+# -----------------------------
+# OUTPUT
+# -----------------------------
+*.log
+
+# -----------------------------
+# SYSTEM
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# EDITOR
+# -----------------------------
+.vscode/
+.idea/
+
+# -----------------------------
+# SCRATCH
+# -----------------------------
+notepad
+python
+
+# -----------------------------
+# DEVELOPMENT / RELEASE WORKSPACE
+# -----------------------------
+cython_native/
+cython_poc/
+native_test/
+release_staging/
+cython_build_one_by_one.py
+
+# -----------------------------
+# LOCAL SECRETS
+# -----------------------------
+pypi-token.txt
+
+# -----------------------------
+# LOCAL WAIL TEST DATA
+# -----------------------------
+wail/test/

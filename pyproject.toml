@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wail-runtime"
+version = "1.0.0"
+description = "AI Runtime Control and Governance Layer for production AI systems. WAIL observes execution, detects unhealthy runtime behavior, retries or reroutes when intervention is justified, and records decisions as signed, verifiable evidence."
+authors = [
+    { name = "WOVO Inc." }
+]
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "LicenseRef-Proprietary"
+license-files = ["LICENSE"]
+dependencies = [
+    "cryptography>=42.0.0",
+    "rich",
+    "python-ulid>=2.5.0",
+    "filelock>=3.17.0",
+]
+
+[project.scripts]
+wail = "wail.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "wail",
+    "wail.*",
+    "wail_private",
+    "wail_private.*"
+]
+
+[tool.setuptools.package-data]
+wail_private = [
+    "*.pyd",
+    "**/*.pyd",
+    "native_manifest.json"
+] 
