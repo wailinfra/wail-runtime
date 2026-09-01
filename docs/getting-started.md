@@ -23,6 +23,9 @@ Install WAIL using pip.
 pip install wail-runtime
 ```
 
+A one-time Pro trial is automatically activated on first use. No credit card or separate activation is required.
+
+After the trial ends, WAIL automatically continues on the Developer plan unless you activate a paid license.
 ---
 
 # Create a Client
