@@ -1,213 +1,401 @@
 # WAIL Architecture
 
-WAIL is an AI Runtime Control & Governance Layer for production AI systems.
+WAIL is an **AI Control & Governance Layer** that operates inside an application's existing execution path.
 
-During AI execution, WAIL observes runtime behavior, evaluates execution health, applies runtime control when necessary and permitted by the active plan, and generates signed runtime evidence.
+It does not replace the application's provider SDK, agent orchestration, MCP infrastructure, or execution targets.
 
-Instead of replacing your provider SDK or request flow, WAIL wraps your existing AI client and observes execution from request to completion.
+WAIL adds runtime observation, execution control, execution relationships, recovery state, and verifiable evidence around those existing execution paths.
 
----
-
-# System Overview
-
-WAIL processes supported AI requests through a consistent runtime pipeline.
-
-As execution progresses, WAIL captures runtime signals, evaluates execution health, determines whether intervention is justified, and records the resulting execution state as signed runtime evidence.
-
-The same runtime control model is applied across supported AI providers.
+![WAIL Architecture](images/overview-architecture.png)
 
 ---
 
-# Runtime Execution Pipeline
+# Architectural Position
 
-A WAIL-managed AI invocation follows the core runtime pipeline:
+WAIL operates between application execution semantics and runtime control semantics.
+
+The application continues to own:
+
+- business logic
+- provider clients
+- agent orchestration
+- MCP clients and servers
+- model and tool selection
+- application-level workflow
+
+WAIL owns the runtime control layer around those executions:
 
 ```text
-AI Invocation
+Existing Application Execution
+            │
+            ▼
+    Runtime Observation
+            │
+            ▼
+     Risk Evaluation
+            │
+            ▼
+     Runtime Control
+            │
+            ├── Observe
+            └── Intervention
+                    │
+                    ▼
+             Recovery State
+            │
+            ▼
+      Execution Evidence
+```
+
+This separation allows WAIL to control and record runtime behavior without becoming the application's gateway or orchestration framework.
+
+---
+
+# Execution Surfaces
+
+WAIL uses a common execution model across three related surfaces.
+
+```text
+Application / Existing Orchestration
+            │
+     ┌──────┼──────────┐
+     │      │          │
+     ▼      ▼          ▼
+  Model   Agent Run   MCP Tool
+Execution             Execution
+            │
+       ┌────┼────┐
+       │    │    │
+     Agent Model MCP Tool
+     Units Units Units
+```
+
+## Model Execution
+
+A model execution represents an individual AI provider execution observed by WAIL.
+
+It retains its own runtime identity and trace-level evidence.
+
+## Agent Run
+
+An Agent Run is the execution boundary for a connected agent workflow.
+
+It can contain Agent Units, Model Units, MCP Tool Units, and the relationships between them.
+
+The Agent Run does not perform orchestration. It represents the execution structure produced by the application's existing orchestration.
+
+## MCP Tool Execution
+
+An MCP tool execution represents an observed tool operation through the application's existing MCP infrastructure.
+
+It can exist as an individual execution and can also participate in an Agent Run.
+
+---
+
+# Execution Identity
+
+WAIL separates execution identity by level.
+
+```text
+Agent Run
+   │
+   ├── Agent Unit
+   │      │
+   │      ├── Model Unit ───── Trace ID
+   │      │
+   │      └── MCP Tool Unit ── Trace ID
+   │
+   └── Agent Unit
+          │
+          └── ...
+```
+
+A **Trace ID** identifies an individual observed execution.
+
+A **Run ID** identifies the larger Agent Run containing related execution units.
+
+This allows individual executions to remain independently traceable while also preserving their position within a larger execution.
+
+---
+
+# Execution Graph
+
+Agent Runs are represented as execution graphs.
+
+Units represent execution participants or operations. Relations describe how execution moved between them.
+
+For example:
+
+```text
+Coordinator
+    │
+    ├── delegates ──> Agent A
+    │                     │
+    │                     ├── calls ──> Model
+    │                     └── calls ──> MCP Tool
+    │
+    ├── delegates ──> Agent B
+    │                     │
+    │                     └── calls ──> Model
+    │
+    └──────────── joins ────────────┐
+                                    ▼
+                              Synthesis Agent
+```
+
+The execution graph can preserve relationships such as:
+
+- `calls`
+- `delegates`
+- `joins`
+
+These relationships connect otherwise independent runtime executions into a single execution structure.
+
+The graph records execution relationships; it does not define how the application must orchestrate them.
+
+---
+
+# Runtime Architecture
+
+Runtime evaluation remains execution-local.
+
+Each observed model or MCP execution can independently produce runtime state:
+
+```text
+Observed Execution
         │
         ▼
-Runtime Signal Capture
+Runtime Signals
         │
         ▼
-Baseline Comparison
-        │
-        ▼
-Drift Detection
-        │
-        ▼
-Runtime Assessment
+Runtime Evaluation
         │
         ▼
 Runtime Decision
         │
         ▼
-Execution Target
-        │
-        ▼
-Runtime Action
-        │
-        ▼
-Runtime Evidence
-        │
-        ▼
-Cryptographic Verification
+Control State
 ```
 
-Where enabled by the active plan, runtime evidence can also feed incident classification, governance, and compliance capabilities.
+Agent Run state is built above these individual executions rather than replacing them.
+
+```text
+Trace-Level Runtime State
+          │
+          ├──────────┐
+          │          │
+          ▼          ▼
+     Model Unit   MCP Tool Unit
+          │          │
+          └────┬─────┘
+               ▼
+          Agent Run
+               │
+               ▼
+     Run-Level Intelligence
+```
+
+This separation is important: a run-level conclusion can use execution structure and multiple underlying executions while each individual trace retains its own runtime state.
+
+Detailed runtime decision and intervention semantics are defined in [Runtime Control](runtime-control.md).
 
 ---
 
-# Runtime Signal Capture
+# Recovery Architecture
 
-Execution begins with runtime observation.
+Recovery is represented as state across executions rather than as a single decision flag.
 
-WAIL captures signals such as:
+At the architectural level:
 
-- execution latency
-- first-token latency
-- streaming behavior
-- token throughput
-- retry activity
-- execution errors
-- timeout events
+```text
+Source Execution
+       │
+       ▼
+Runtime Decision
+       │
+       ▼
+Recovery Application
+       │
+       ▼
+Resulting Execution
+       │
+       ▼
+Recovery Verification
+```
 
-These observations provide the runtime evidence used by later evaluation and control stages.
+Decision, application, and verification are separate states.
 
----
+This allows WAIL to preserve whether an intervention was merely selected, actually applied, and subsequently evaluated.
 
-# Baseline Comparison & Drift Detection
-
-Observed runtime behavior is compared with historical execution baselines.
-
-This stage can identify unusual runtime behavior by analyzing:
-
-- latency changes
-- duration spikes
-- workload shifts
-- streaming anomalies
-- statistical deviation
-
-If execution behaves within expected conditions, WAIL continues observing the current execution path. When abnormal behavior is detected, the observed deviation becomes part of the runtime assessment.
+Detailed retry, reroute, next-execution, and recovery semantics are defined in [Runtime Control](runtime-control.md).
 
 ---
 
-# Runtime Assessment
+# Evidence Architecture
 
-Observed runtime signals are evaluated to determine the operational state of the execution.
+WAIL preserves evidence at two connected levels.
 
-The assessment can determine:
+```text
+┌─────────────────────────────┐
+│   Individual Execution      │
+│                             │
+│   Trace-level Evidence      │
+└──────────────┬──────────────┘
+               │
+               │ referenced by
+               ▼
+┌─────────────────────────────┐
+│        Agent Run            │
+│                             │
+│   Run-level Evidence        │
+│   + Execution Graph         │
+└─────────────────────────────┘
+```
 
-- execution health
-- severity
-- dominant impact surface
-- runtime confidence
+Trace-level evidence describes an individual model or MCP execution.
 
-This stage describes **what happened** without independently determining **what should happen next**.
+Agent Run evidence describes the connected execution structure and references the underlying executions that participated in the run.
 
----
+The two evidence levels complement each other rather than duplicating each other.
 
-# Runtime Decision
-
-Based on the runtime assessment, WAIL determines the appropriate operational response.
-
-Runtime Decision translates observed runtime conditions into an operational decision according to the active runtime policy and available plan capabilities.
-
-Depending on runtime conditions, policy, and entitlement, WAIL may:
-
-- continue execution
-- retry execution
-- reroute execution
-- preserve runtime evidence
-
-Separating runtime assessment from runtime decision allows control policy to determine the appropriate response without changing the underlying runtime observations.
-
----
-
-# Execution Target & Runtime Action
-
-When intervention is justified and available under the active plan, WAIL determines how execution should continue.
-
-Depending on the runtime decision, execution may:
-
-- continue on the current execution path
-- retry the request
-- reroute to another model or provider
-
-Runtime reroute applies to the next request and does not permanently change the model or provider configured by the application.
-
-The resulting control state and execution outcome become part of the runtime evidence.
+Evidence structure, integrity semantics, and cryptographic verification are defined in [Evidence Model](evidence-model.md).
 
 ---
 
-# Incident Classification
+# Run-Level Intelligence
 
-Where enabled by the active plan, abnormal executions can be classified into a structured incident model.
+The Agent Run provides a boundary for intelligence that requires execution context beyond a single trace.
 
-Classification can incorporate:
+The architecture supports run-level state for:
 
-- runtime severity
-- deviation magnitude
-- dominant impact surface
-- supporting runtime evidence
+```text
+Execution Pathology
+        │
+        ▼
+Causal Attribution
+        │
+        ▼
+Execution Localization
+        │
+        ▼
+Execution Propagation
+        │
+        ▼
+Runtime Recovery
+        │
+        ▼
+Recovery Verification
+```
 
-Incident information can then be used by additional governance capabilities where available.
+These states are conditional on the evidence available for the run.
 
----
+A component can therefore remain explicitly unevaluated or not applicable when its prerequisites are unavailable.
 
-# Governance
-
-Where enabled by the active plan, WAIL extends runtime control and evidence with governance and compliance capabilities.
-
-Governance capabilities can associate runtime incidents and execution evidence with structured information such as:
-
-- incident lifecycle
-- governance state
-- retention requirements
-- applicable obligations
-- regulatory context
-
-These capabilities build on the same runtime observations and execution evidence used by the core runtime control layer.
-
----
-
-# Runtime Evidence
-
-WAIL assembles observed runtime information, assessment results, decisions, control state, execution outcomes, and integrity information into signed runtime evidence.
-
-The evidence available depends on the active plan and execution outcome.
+This prevents unavailable run-level conclusions from being represented as established execution state.
 
 ---
 
-# Cryptographic Verification
+# Governance Boundary
 
-Runtime evidence includes cryptographic integrity information and can be independently verified.
+Governance is built on top of execution state and evidence.
 
-Cryptographic verification provides a way to confirm that generated evidence has not been modified after generation.
+```text
+Runtime Execution
+        │
+        ▼
+Runtime Control
+        │
+        ▼
+Execution Evidence
+        │
+        ▼
+Governance Capabilities
+```
+
+Governance does not replace runtime control and is not required for the execution layer to operate.
+
+Where enabled, governance capabilities consume the evidence and execution state produced by the runtime architecture.
+
+---
+
+# Architectural Boundaries
+
+WAIL maintains several explicit boundaries.
+
+### Application vs WAIL
+
+The application owns orchestration and business logic.
+
+WAIL owns runtime observation, runtime control, execution evidence, and the execution relationships it records.
+
+### Orchestration vs Execution Graph
+
+The application's agent framework determines what agents do.
+
+WAIL records how the resulting execution occurred.
+
+### Trace vs Agent Run
+
+A trace represents an individual execution.
+
+An Agent Run represents the connected execution containing those traces.
+
+### Decision vs Recovery
+
+A decision represents the selected runtime action.
+
+Recovery state represents whether that action was subsequently applied and evaluated.
+
+### Execution vs Governance
+
+Runtime control operates on execution.
+
+Governance capabilities operate on the resulting execution state and evidence.
 
 ---
 
 # Architectural Principles
 
-WAIL is built around four core principles.
+WAIL's architecture follows six principles:
 
-## Runtime First
+**Runtime-first**  
+Runtime state is derived from observed execution behavior.
 
-Runtime evaluation is based on observed execution behavior.
+**Execution-local**  
+WAIL operates inside the application's existing execution path rather than requiring a hosted gateway.
 
-## Deterministic
+**Orchestration-independent**  
+Agent execution can be represented without requiring WAIL to become the agent framework.
 
-Runtime assessment and operational decisions are deterministic for the same runtime evidence, execution state, policy, and control conditions.
+**Composable**  
+Individual model and MCP executions can remain independent while participating in larger Agent Runs.
 
-## Provider Agnostic
+**State-explicit**  
+Observation, decision, application, verification, and unavailable states remain distinguishable.
 
-The runtime control and evidence model remains consistent across supported AI providers.
-
-## Verifiable
-
-Runtime evidence is cryptographically verifiable.
+**Verifiable**  
+Execution state can be preserved as cryptographically verifiable evidence.
 
 ---
 
 # Summary
 
-WAIL combines runtime observation, assessment, deterministic decision-making, execution control, evidence generation, and optional governance capabilities in a consistent architecture across supported AI providers.
+WAIL separates four architectural concerns:
+
+```text
+Execution
+    ↓
+Runtime Control
+    ↓
+Execution Structure
+    ↓
+Verifiable Evidence
+```
+
+Individual model and MCP executions retain their own runtime state and trace identity.
+
+Agent Runs connect those executions into a graph without replacing application orchestration.
+
+Runtime control remains distinct from recovery application and verification.
+
+Evidence preserves both the individual execution and the larger execution structure, providing the foundation for optional governance capabilities.

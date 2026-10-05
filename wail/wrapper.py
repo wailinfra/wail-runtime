@@ -15,11 +15,13 @@ from wail.runtime.context import (
     wail_start,
 )
 from wail.runtime.stream.unified_stream import UnifiedStream
+from wail.execution.bridge import current_bound_trace
 from wail.runtime_config import _runtime_config
 from wail_private import runtime_decision_store
 from wail_private.client_inspector import inspect_client
 from wail_private.client_registry import client_registry
 from wail_private.control_executor import ControlExecutor
+from wail_private.execution.recovery_application_store import RecoveryApplicationStore
 from wail_private.telemetry.client import trigger_telemetry
 from wail_private.licensing.license import LicenseError
 from wail_private.cli.errors import exit_license_error
@@ -182,13 +184,25 @@ def execute_with_runtime(
     control_allowed = _runtime_config.get("_control_allowed", True)
 
     if control_allowed:
-        pending_decision = runtime_decision_store.consume()
+        pending_decision = runtime_decision_store.consume(
+            surface="model"
+        )
     else:
-        runtime_decision_store.consume()
+        runtime_decision_store.consume(
+            surface="model"
+        )
         pending_decision = {
             "decision": "observe",
             "reason": "control_quota_exhausted",
         }
+
+    source_trace_id = pending_decision.get(
+        "_source_trace_id"
+    )
+    control_action = str(
+        pending_decision.get("decision")
+        or "observe"
+    )
 
     executor = ControlExecutor()
 
@@ -200,12 +214,52 @@ def execute_with_runtime(
         client=client,
     )
 
+    execution_target = result["execution_target"]
+
+    if (
+        source_trace_id
+        and control_action in {"retry", "reroute"}
+    ):
+        bound_trace = current_bound_trace()
+
+        if bound_trace is not None:
+            control_executed = control_action == "retry"
+
+            if control_action == "reroute":
+                control_executed = any(
+                    (
+                        execution_target.get("from_transport")
+                        != execution_target.get("to_transport"),
+                        execution_target.get("from_provider")
+                        != execution_target.get("to_provider"),
+                        execution_target.get("from_model")
+                        != execution_target.get("to_model"),
+                    )
+                )
+
+            control_reason = pending_decision.get("reason")
+
+            if (
+                control_action == "reroute"
+                and not control_executed
+            ):
+                control_reason = "reroute_not_applied"
+
+            RecoveryApplicationStore.get_instance().save(
+                applied_trace_id=bound_trace.trace_id,
+                source_trace_id=str(source_trace_id),
+                action=control_action,
+                executed=control_executed,
+                reason=control_reason,
+                execution_target=execution_target,
+            )
+
     return {
         "response": result["response"],
         "provider": result["target"].provider,
         "model": result["target"].model,
         "transport": result["target"].transport,
-        "execution_target": result["execution_target"],
+        "execution_target": execution_target,
     }
 
 def wrap(

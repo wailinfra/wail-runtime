@@ -1,4 +1,4 @@
-import glob
+﻿import glob
 import json
 import os
 import sys
@@ -131,11 +131,6 @@ def print_phase(title):
     print("=" * 70)
 
 
-def print_runtime():
-    print("Trace:", get_current_trace_id())
-    print("Next Action:", next_action())
-
-
 # ==========================================================
 # BASELINE
 # ==========================================================
@@ -150,8 +145,6 @@ for i in range(BASELINE_SIZE):
         prompt="What is 2 + 2? Answer in one sentence.",
         max_output_tokens=80,
     )
-
-    print_runtime()
 
     time.sleep(0.2)
 
@@ -200,8 +193,6 @@ for i in range(SPIKE_COUNT):
         model=active_model,
     )
 
-    print_runtime()
-
     pending = runtime_decision_store.peek() or {}
     if str(pending.get("decision") or "").lower() == "reroute":
         print(
@@ -229,8 +220,6 @@ for i in range(OBSERVATION_COUNT):
         max_output_tokens=80,
         model=active_model,
     )
-
-    print_runtime()
     time.sleep(0.15)
 
 print("\nPost-control observation completed.")

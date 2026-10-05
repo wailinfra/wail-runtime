@@ -1,78 +1,172 @@
 # Why WAIL
 
-AI applications can receive a successful response from a model provider while the execution itself is operationally unhealthy.
+AI systems can complete successfully while the execution itself is operationally unhealthy.
 
-A request can complete without an error while first-token latency increases several times over its normal baseline. Streaming can stall. Token delivery can become unstable. Total execution time can spike while the provider remains available and the API still returns successfully.
+A model can respond while latency has materially degraded. Streaming can become unstable. A tool call can fail inside an otherwise valid agent run. Recovery can be attempted without establishing whether it actually worked.
 
-Monitoring can expose these conditions.
+Monitoring can expose symptoms.
 
-Application code can implement retries and rerouting.
+Application code can implement recovery.
 
-Gateways can route traffic between providers.
+Gateways can route traffic.
 
-But these capabilities do not, by themselves, provide a runtime layer that evaluates the health of the execution itself, determines what should happen because of that condition, applies control when justified, and preserves verifiable evidence of the result.
+Agent frameworks can orchestrate work.
 
-**WAIL exists to close that runtime gap.**
+But these capabilities do not, by themselves, provide a runtime layer responsible for evaluating execution state, deciding whether intervention is justified, applying control, verifying the result, and preserving evidence of what happened.
+
+**WAIL exists to provide that runtime layer.**
+
+---
+
+# The Runtime Gap
+
+Production AI is no longer a single request to a single model.
+
+An execution can involve:
+
+```text
+Application
+    │
+    ├── Agent
+    │     ├── Model
+    │     ├── Tool
+    │     └── Agent
+    │
+    └── Model
+```
+
+Each part can complete, degrade, fail, recover, or affect another part of the execution.
+
+The application defines what the system is trying to accomplish.
+
+The model provider performs inference.
+
+Agent frameworks coordinate work.
+
+MCP connects tools and services.
+
+WAIL operates around those executions to determine their runtime state and preserve what occurred.
 
 ---
 
 # Successful Does Not Mean Healthy
 
-Traditional application logic often treats an AI request as successful when it returns without an error.
+Traditional application logic often treats an AI operation as successful when it returns without an error.
 
 Runtime health requires a different view.
 
-Suppose a model normally begins producing output within its established runtime range, but a request suddenly takes several times longer to produce its first token.
+A model request can return a valid response after materially abnormal latency.
 
-The provider is reachable.
+A stream can complete after unstable delivery.
 
-The API call succeeds.
+A tool can eventually return after degraded execution.
 
-The model eventually returns a valid response.
+An agent run can complete while one of its underlying executions required recovery.
 
-Yet the execution has materially degraded.
+The final application result alone does not describe the operational history of the execution.
 
-Metrics, logs, and traces can expose that degradation, but identifying a runtime condition and determining what should happen because of it are different responsibilities.
+WAIL evaluates that runtime behavior independently of whether the application ultimately receives a successful result.
 
-A monitoring system can report increased latency, unstable streaming, retries, timeouts, or other runtime deviations.
-
-It does not necessarily determine whether those conditions justify observation, retry, reroute, or no intervention at all.
-
-WAIL connects observed runtime behavior to operational decisions using runtime evidence, historical behavior, execution state, policy, and available control capabilities.
-
-**Observability tells you what happened. Runtime control determines what should happen next.**
+**Application success and runtime health are not the same thing.**
 
 ---
 
-# Resilience Should Not Live in Every Application
+# Observability Is Necessary, but It Is Not Control
 
-Applications can implement their own retries, timeouts, and rerouting logic.
+Metrics, logs, and traces can show what happened.
 
-At small scale, that may be enough.
+They can expose:
 
-As AI infrastructure expands across services, models, and providers, those decisions can become fragmented:
+- latency changes
+- streaming instability
+- retries
+- timeouts
+- errors
+- execution relationships
 
-- one service retries after a timeout
-- another reroutes after a latency threshold
-- another contains provider-specific recovery logic
-- another only records the failure
-- each service produces different evidence about what occurred
+But observing a condition and determining what should happen because of it are different responsibilities.
 
-Operational policy becomes distributed through application code.
+WAIL connects runtime evidence to operational control.
 
-WAIL separates runtime control from application business logic and provides a consistent control model around supported AI execution environments.
+That control can result in:
 
-The application remains responsible for what it wants the model to do.
+```text
+OBSERVE
+RETRY
+REROUTE
+```
 
-WAIL evaluates and controls the runtime behavior around that execution.
+Detection does not automatically imply intervention.
+
+A runtime condition can be observed without changing execution.
+
+An intervention can be selected without being applied.
+
+An applied recovery can still require verification.
+
+These distinctions are fundamental to WAIL's runtime model.
 
 ---
 
-# WAIL Is Not a Gateway
+# Recovery Is More Than a Retry
 
-WAIL does not require applications to replace their existing provider SDKs with a centralized AI gateway.
+Recovery is often represented as a single action:
 
-Instead, WAIL wraps existing provider clients.
+```text
+failure → retry
+```
+
+That loses important information.
+
+WAIL separates:
+
+```text
+Decision
+    │
+    ▼
+Recovery Preparation
+    │
+    ▼
+Recovery Application
+    │
+    ▼
+Resulting Execution
+    │
+    ▼
+Recovery Verification
+```
+
+This means WAIL can distinguish between:
+
+```text
+recovery selected
+recovery applied
+recovery verified
+```
+
+A decision to recover is not evidence that recovery occurred.
+
+Applying recovery is not evidence that recovery succeeded.
+
+The resulting execution determines the recovery outcome.
+
+See [Runtime Control](runtime-control.md) for the control semantics.
+
+---
+
+# Control Without Replacing Application Intent
+
+WAIL does not require applications to move their execution logic into a new runtime platform.
+
+Existing provider clients remain provider clients.
+
+Existing agent orchestration remains application orchestration.
+
+Existing MCP infrastructure remains MCP infrastructure.
+
+WAIL instruments and controls the applicable execution path around them.
+
+For model clients:
 
 ```python
 from openai import OpenAI
@@ -81,115 +175,127 @@ import wail
 client = wail.wrap(OpenAI())
 ```
 
-The application continues using its existing provider SDK and request flow.
+The application continues using the provider SDK normally.
 
-Gateways solve valuable problems such as centralized routing, authentication, quotas, caching, provider abstraction, and traffic management.
+For agent systems, existing orchestration can execute inside a WAIL Agent Run.
+
+For MCP, existing client sessions can be instrumented by WAIL.
+
+The application still defines what should be executed.
+
+WAIL determines the applicable runtime control around that execution.
+
+---
+
+# WAIL Is Not a Gateway
+
+WAIL does not require AI traffic to be moved behind a centralized WAIL proxy.
+
+Gateways solve valuable problems such as:
+
+- centralized routing
+- authentication
+- quotas
+- caching
+- provider abstraction
+- traffic management
 
 WAIL solves a different problem:
 
-**the operational state of AI execution itself.**
+**the operational state and control of AI execution itself.**
 
-It can therefore complement existing gateways and infrastructure rather than requiring them to be replaced.
+It can therefore operate alongside gateways rather than replacing them.
 
 ---
 
-# From Execution to Decision
+# Beyond Individual Model Requests
 
-WAIL separates runtime control into distinct responsibilities:
+A trace can explain an individual model or tool execution.
+
+Modern AI systems also need to understand how executions relate to one another.
+
+WAIL Agent Runs provide a larger execution boundary containing relationships between:
 
 ```text
-Observe
-   │
-   ▼
-Assess
-   │
-   ▼
-Decide
-   │
-   ▼
-Control
-   │
-   ▼
-Evidence
+Agent Units
+Model Units
+MCP Tool Units
 ```
 
-Observation establishes what happened during execution.
+and execution relationships such as delegation and calls.
 
-Assessment determines the operational state represented by those observations.
+This allows runtime evidence to represent not only an isolated request but also the execution structure in which that request occurred.
 
-Decision determines the appropriate response according to runtime conditions and policy.
+Trace-level evidence remains independently identifiable.
 
-Control determines what is actually applied.
-
-Evidence preserves the relationship between all of them.
-
-Keeping these responsibilities separate matters.
-
-**Detection is not intervention.**
-
-A deviation can be detected without requiring execution to change.
-
-An operational decision can be produced without the corresponding intervention being executed when the applicable control capability is unavailable.
-
-When intervention does occur, WAIL preserves both the reason for the decision and the resulting execution outcome.
+Agent Run evidence connects those executions into a run-level record.
 
 ---
 
-# Rerouting Does Not Change Application Configuration
+# Runtime Control Across Models and Tools
 
-Standard runtime reroute follows an N+1 model.
+Runtime degradation is not limited to model providers.
 
-A degraded execution on request **N** can produce a runtime decision that changes the execution target for request **N+1** when intervention is justified and available.
+A production execution may depend on a model call, an MCP tool call, another agent, or a combination of them.
 
-The intervention does not permanently rewrite the provider or model configured by the application.
+WAIL applies a common runtime-control model across supported execution surfaces while preserving their individual execution identities.
 
-The application continues expressing its normal execution intent. WAIL applies runtime control when the current runtime state justifies it rather than permanently modifying application configuration.
+For model execution, recovery can involve retrying or rerouting to another configured model or provider.
 
-This keeps runtime intervention separate from application intent.
+For supported MCP execution, recovery can involve an alternate configured tool route.
 
----
+The control semantics remain consistent:
 
-# Stability Matters as Much as Rerouting
+```text
+observe
+decide
+apply
+verify
+```
 
-A different provider or model having a better candidate score does not automatically justify moving execution.
-
-AI runtime behavior naturally fluctuates.
-
-A control system that reacts to every small difference can create repeated route switching and introduce instability of its own.
-
-WAIL therefore separates candidate evaluation from the decision to change the execution path.
-
-Routing stability controls suppress unnecessary movement when the expected improvement does not justify a route change.
-
-The objective is not to reroute as often as possible.
-
-**The objective is to intervene when the runtime evidence justifies intervention.**
+The execution target changes; the distinction between decision and outcome does not.
 
 ---
 
 # Evidence, Not Just Logs
 
-Once software begins making operational decisions automatically, knowing that an action occurred is not enough.
+Once software begins making operational decisions automatically, recording that an action occurred is not enough.
 
-You also need to know why.
+You also need to establish why it occurred and what happened afterward.
 
-WAIL preserves the relationship between:
+WAIL preserves evidence connecting runtime state with control state.
 
-- observed runtime behavior
-- runtime assessment
-- operational decision
-- execution target
-- control state
-- executed action
-- execution outcome
+At the trace level, that can include the execution, assessment, decision, target, intervention, outcome, and cryptographic integrity information.
 
-A decision and an executed intervention are not treated as the same thing.
+At the Agent Run level, WAIL can preserve the connected execution graph and run-level recovery state.
 
-Generated runtime artifacts include cryptographic integrity information and signatures that allow the evidence to be independently verified.
+Generated evidence is cryptographically protected so its integrity can be verified independently.
 
-The result is more than a log saying that a reroute happened.
+The detailed semantics are defined in [Evidence Model](evidence-model.md).
 
-It is signed evidence of the runtime conditions, decision, control state, and execution outcome associated with that intervention.
+Artifact structures are documented in [Artifact Reference](artifact-reference.md).
+
+---
+
+# Runtime Control Should Remain Separate From Business Logic
+
+Applications can implement their own retries, timeouts, routing rules, and recovery behavior.
+
+At small scale, that can be enough.
+
+As AI systems expand across models, providers, agents, tools, and services, runtime-control logic can become fragmented across application code.
+
+One service retries.
+
+Another reroutes.
+
+Another contains provider-specific recovery logic.
+
+An agent handles tool failures differently.
+
+Each produces different evidence about what happened.
+
+WAIL provides a common runtime-control layer around supported AI executions while leaving application business logic in the application.
 
 ---
 
@@ -197,143 +303,94 @@ It is signed evidence of the runtime conditions, decision, control state, and ex
 
 WAIL runs inside the customer's environment.
 
-Runtime signals are processed locally as AI execution occurs.
+Runtime processing and generated execution evidence remain local rather than requiring AI traffic to pass through a WAIL-hosted runtime data plane.
 
-Prompts, model responses, generated runtime evidence, and WAIL's local runtime state remain in the customer's environment and are not sent to a WAIL-hosted runtime data service.
+The application's relationship with its model providers, MCP infrastructure, and other execution targets remains unchanged.
 
-WAIL may periodically transmit limited product-usage telemetry, such as an anonymous installation identifier, WAIL version, license plan, usage metrics, provider information, and model names. This telemetry does not include prompts, model responses, API credentials, runtime evidence, or customer application data.
+WAIL may transmit limited product-usage telemetry separately from runtime-control processing.
 
-Product telemetry is separate from WAIL's runtime control and evidence processing. Details are documented in [Telemetry](telemetry.md).
+That telemetry does not include prompts, model responses, generated runtime evidence, API credentials, or customer application data.
 
-This allows organizations to add runtime control and verifiable evidence without introducing a WAIL-hosted data plane for their AI traffic.
-
-The application's existing relationship with its chosen AI provider remains unchanged. WAIL operates around that execution inside the customer's environment.
+See [Telemetry](telemetry.md) for the telemetry boundary.
 
 ---
 
-# Deterministic Decisions
+# Governance From Execution Evidence
 
-Runtime control should not produce arbitrary operational decisions from identical evidence.
+Operational evidence can also become governance evidence.
 
-WAIL's assessment and decision process is deterministic.
+Where the applicable capabilities are enabled, WAIL can connect runtime execution evidence with governance, lifecycle, obligation, retention, and regulatory context.
 
-Given the same runtime evidence, execution state, policy, and control conditions, WAIL produces the same runtime assessment and operational decision.
-
-Execution-specific measurements such as latency, timestamps, trace identifiers, hashes, and signatures naturally vary between separate requests.
-
-Determinism applies to how WAIL evaluates the recorded runtime state and derives its operational decision.
-
-This makes the relationship between evidence and decision reproducible and inspectable.
-
----
-
-# One Runtime Model Across AI Environments
-
-Production AI systems increasingly combine hosted model APIs, routing platforms, and self-hosted inference.
-
-WAIL provides a consistent runtime model across:
-
-- OpenAI
-- Anthropic
-- Google
-- OpenRouter
-- Ollama
-- OpenAI-compatible runtimes 
-
-These environments expose different APIs and execution characteristics, but the operational questions remain the same:
-
-Was execution healthy?
-
-Did runtime behavior materially deviate?
-
-Was intervention justified?
-
-What decision was made?
-
-What actually happened?
-
-What evidence remains afterward?
-
-WAIL normalizes these questions into a consistent runtime control and evidence model instead of requiring every provider integration to become its own operational system.
-
-OpenAI, Anthropic, and Google together account for an estimated 88% of enterprise LLM API usage in Menlo Ventures' 2025 U.S. enterprise research.
-
-WAIL supports all three, plus routed and self-hosted environments including OpenRouter, Ollama, vLLM, and LM Studio.
-
-Source: Menlo Ventures, *2025: The State of Generative AI in the Enterprise*.
-
----
-
-# Governance Where Required
-
-Runtime incidents can matter beyond immediate application performance.
-
-Where enabled in Enterprise, WAIL can extend the same runtime evidence into governance, lifecycle, obligation, retention, and regulatory context.
-
-This keeps governance connected to the execution evidence that produced it rather than reconstructing the event afterward.
+This keeps governance tied to the execution that produced the evidence instead of reconstructing operational history afterward.
 
 ---
 
 # A Different Layer
 
-WAIL does not try to replace the rest of the AI infrastructure stack.
-
-It is not:
+WAIL is not:
 
 - an AI gateway
-- a trace store
 - an agent framework
 - a workflow engine
 - a model provider
 - a provider SDK replacement
+- a trace store
 - a generic application performance monitoring platform
 
-Those systems can continue doing their jobs.
+Those systems continue doing their jobs.
 
-A trace system can record an execution.
+Providers perform inference.
 
-A monitoring system can surface degradation.
+Agent frameworks orchestrate work.
 
-A gateway can move traffic.
+MCP connects tools.
 
-Application code can implement recovery logic.
+Gateways manage traffic.
 
-WAIL connects runtime observation, assessment, deterministic decision-making, intervention, and signed evidence as one runtime control model.
+Observability systems expose operational data.
 
-And it does so inside the customer's environment rather than requiring AI execution data to be transferred into a WAIL-hosted runtime service.
+Applications define business behavior.
+
+**WAIL provides runtime control and governance around the resulting AI execution.**
 
 ---
 
 # Why WAIL
 
-AI infrastructure already has tools for calling models, building applications, routing traffic, and monitoring systems.
+Production AI systems need more than the ability to execute.
 
-The remaining problem is what happens **during and immediately after AI execution**:
+They need to establish:
 
-Is this execution healthy?
+```text
+What happened?
 
-Does the observed degradation justify intervention?
+Was the execution operationally healthy?
 
-What should happen next?
+Was intervention justified?
 
-Should the execution path actually change?
+What control decision was made?
 
-And can the resulting decision and action be independently verified afterward?
+Was that decision actually applied?
+
+What happened after intervention?
+
+Did recovery succeed?
+
+How did this execution relate to the rest of the agent run?
+
+Can the resulting evidence be verified afterward?
+```
 
 WAIL is built to answer those questions.
 
-It provides a runtime control and governance layer that can:
+It provides an **AI Runtime Control & Governance Layer** that operates around existing AI execution infrastructure.
 
-- detect and assess meaningful runtime degradation
-- produce deterministic decisions and apply runtime control when justified
-- prevent unnecessary route churn while preserving application intent
-- operate on-prem across major hosted, routed, and self-hosted AI environments
-- preserve signed, independently verifiable runtime evidence under customer control
+The application keeps its execution logic.
 
-The application keeps its provider SDK and request flow.
+Providers perform inference.
 
-The provider performs inference.
+Agents keep their orchestration.
 
-WAIL evaluates, controls, and records the runtime around that execution.
+MCP keeps its tool infrastructure.
 
-**That is the runtime gap WAIL is designed to fill.**
+**WAIL evaluates, controls, verifies, and records the runtime around those executions.**

@@ -1,4 +1,4 @@
-import glob
+﻿import glob
 import json
 import time
 from pathlib import Path
@@ -108,11 +108,6 @@ def next_action():
     ).get("next_action")
 
 
-def print_runtime():
-    print("Trace:", get_current_trace_id())
-    print("Next Action:", next_action())
-
-
 def call_anthropic(
     *,
     chunk_delay_seconds=0.0,
@@ -171,7 +166,6 @@ print("\n=== BASELINE PHASE (ANTHROPIC) ===")
 for i in range(BASELINE_SIZE):
     print(f"\n[Anthropic Baseline {i + 1}/{BASELINE_SIZE}]")
     call_anthropic()
-    print_runtime()
     time.sleep(0.2)
 
 print("\n=== BASELINE PHASE (OPENAI) ===")
@@ -179,7 +173,6 @@ print("\n=== BASELINE PHASE (OPENAI) ===")
 for i in range(BASELINE_SIZE):
     print(f"\n[OpenAI Baseline {i + 1}/{BASELINE_SIZE}]")
     call_openai()
-    print_runtime()
     time.sleep(0.2)
 
 print("\nBaseline completed.")
@@ -202,8 +195,6 @@ for i in range(SPIKE_COUNT):
     call_anthropic(
         chunk_delay_seconds=SPIKE_DELAY_SECONDS,
     )
-
-    print_runtime()
 
     pending = runtime_decision_store.peek() or {}
 
@@ -236,8 +227,6 @@ for i in range(OBSERVATION_COUNT):
     print(f"\n[Observation {i + 1}/{OBSERVATION_COUNT}]")
 
     call_anthropic()
-
-    print_runtime()
     time.sleep(0.15)
 
 print("\nPost-control observation completed.")

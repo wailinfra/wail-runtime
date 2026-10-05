@@ -23,10 +23,38 @@ def wail_retry(*args, **kwargs):
     return _wail_retry(*args, **kwargs)
 
 
+def execution_parent(
+    unit_id,
+    *,
+    kind="calls",
+):
+    from wail.execution.bridge import execution_parent_scope
+
+    return execution_parent_scope(
+        unit_id,
+        kind=kind,
+    )
+
+
+def execution_run(
+    *,
+    run_id=None,
+    attributes=None,
+):
+    from wail.execution.bridge import execution_run_scope
+
+    return execution_run_scope(
+        run_id=run_id,
+        attributes=attributes,
+    )
+
+
 __all__ = [
     "configure",
     "wrap",
     "wail_start",
     "wail_end",
     "wail_retry",
+    "execution_run",
+    "execution_parent",
 ]

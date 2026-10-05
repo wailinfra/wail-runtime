@@ -80,14 +80,26 @@ def build_tech_artifact(full_artifact: dict) -> dict:
     ctx = metadata.get("invocation_context", {}) or {}
     segment = f"{metadata.get('provider')}:{metadata.get('model')}:{ctx.get('service')}:{ctx.get('env')}"
     dominant_surface = (
-    incident.get("dominant_surface")
-    or risk.get("dominant_surface")
+        incident.get("dominant_surface")
+        or risk.get("dominant_surface")
     )
+
     control_decision = control.get("decision")
     control_action = control.get("action")
     control_executed = bool(control.get("executed"))
 
-    if not control_action and control_decision:
+    applied_control_action = ctx.get("_control_action")
+    applied_control_executed = ctx.get("_control_executed") is True
+
+    if applied_control_executed:
+        control_executed = True
+
+        if applied_control_action == "reroute":
+            control_action = "reroute_executed"
+        elif applied_control_action == "retry":
+            control_action = "retry_executed"
+
+    elif not control_action and control_decision:
         if control_decision in ["retry", "prepare_retry"]:
             control_action = "retry_prepared"
         elif control_decision in ["reroute"]:
@@ -151,7 +163,10 @@ def build_tech_artifact(full_artifact: dict) -> dict:
     if execution_changed:
         if compact_execution.get("rerouted"):
             control_action = "reroute_executed"
-        elif control_decision in ["retry", "prepare_retry"]:
+        elif (
+            applied_control_executed
+            and applied_control_action == "retry"
+        ):
             control_action = "retry_executed"
 
         control_executed = True

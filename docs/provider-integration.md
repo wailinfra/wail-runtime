@@ -1,10 +1,8 @@
 # Provider Integration
 
-WAIL supports the AI stacks used by the vast majority of enterprise AI deployments: OpenAI, Anthropic, Google, OpenRouter, Ollama, and OpenAI-compatible runtimes including LM Studio and vLLM.
+WAIL integrates with major hosted AI providers, routing platforms, local inference environments, and supported OpenAI-compatible runtimes.
 
-OpenAI, Anthropic, and Google alone accounted for an estimated 88% of enterprise LLM API usage in 2025.
-
-WAIL wraps existing AI clients and applies a consistent runtime control model across supported providers.
+WAIL wraps existing AI clients and applies a consistent runtime control and evidence model across supported providers.
 
 ---
 
@@ -27,7 +25,7 @@ Runtime control capabilities depend on the active plan and license entitlements.
 
 # OpenAI
 
-Wrap your existing OpenAI client.
+Wrap your existing OpenAI client:
 
 ```python
 from openai import OpenAI
@@ -42,7 +40,7 @@ Continue using the wrapped client through the OpenAI SDK as usual.
 
 # Anthropic
 
-Wrap your existing Anthropic client.
+Wrap your existing Anthropic client:
 
 ```python
 from anthropic import Anthropic
@@ -57,7 +55,7 @@ Continue using the wrapped client through the Anthropic SDK as usual.
 
 # Google
 
-Wrap your existing Google client.
+Wrap your existing Google client:
 
 ```python
 from google import genai
@@ -108,16 +106,14 @@ client = wail.wrap(
 
 # OpenAI-Compatible Runtimes
 
-WAIL also works with inference servers that expose an OpenAI-compatible API.
+WAIL also works with supported inference servers that expose an OpenAI-compatible API.
 
 Supported runtimes include:
 
 - LM Studio
 - vLLM
 
-Configure the OpenAI client for the runtime endpoint, then wrap it with WAIL.
-
-For example:
+Configure the OpenAI client for the runtime endpoint, then wrap it with WAIL:
 
 ```python
 from openai import OpenAI
@@ -136,30 +132,20 @@ The integration pattern remains the same for supported OpenAI-compatible endpoin
 
 # Multi-Provider Applications
 
-Applications can use WAIL across supported provider clients without replacing their existing provider SDKs.
+Applications can use WAIL across multiple supported provider clients without replacing their existing SDKs.
 
-The integration pattern remains the same:
+The integration pattern remains:
 
 ```python
 client = wail.wrap(existing_client)
 ```
 
-WAIL normalizes supported provider executions into a consistent runtime control and evidence model.
-
----
-
-# Enterprise Coverage
-
-WAIL's direct provider support covers the three providers that together accounted for an estimated 88% of enterprise LLM API usage in 2025: Anthropic, OpenAI, and Google.
-
-Support for OpenRouter, Ollama, and OpenAI-compatible runtimes extends that coverage to additional hosted, routed, and self-hosted AI deployments.
-
-The 88% estimate is based on Menlo Ventures' 2025 U.S. enterprise research and represents estimated enterprise LLM API usage rather than a claim that WAIL covers exactly 88% of all AI deployments.
+Each wrapped client retains its provider-specific execution path while WAIL normalizes the resulting runtime state into a consistent control and evidence model.
 
 ---
 
 # Summary
 
-WAIL provides a consistent integration layer across major hosted AI providers, model routing platforms, and OpenAI-compatible inference runtimes.
+WAIL provides a consistent integration pattern across supported hosted providers, routing platforms, local inference environments, and OpenAI-compatible runtimes.
 
-Applications keep their existing provider SDK and request flow while WAIL adds runtime monitoring, control, and evidence across supported AI environments.
+Applications keep their existing provider SDKs and request flows while WAIL adds runtime detection, control, and evidence around those executions.

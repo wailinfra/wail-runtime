@@ -1,8 +1,8 @@
 # Getting Started
 
-Get WAIL running in just a few minutes.
+Get WAIL running in a few minutes.
 
-You'll wrap your existing AI client, make a normal request, and automatically receive runtime monitoring, signed runtime evidence, and a runtime summary.
+Start with your existing AI client and request flow. WAIL wraps the client and adds runtime observation, control, and signed execution evidence without replacing the provider SDK.
 
 ---
 
@@ -17,7 +17,7 @@ Before you begin, make sure you have:
 
 # Install
 
-Install WAIL using pip.
+Install WAIL using pip:
 
 ```bash
 pip install wail-runtime
@@ -25,9 +25,9 @@ pip install wail-runtime
 
 ---
 
-# Create a Client
+# Wrap Your AI Client
 
-Wrap your existing AI client with WAIL.
+Create your provider client normally and wrap it with WAIL:
 
 ```python
 from openai import OpenAI
@@ -42,32 +42,112 @@ Continue using the wrapped client through the provider SDK as usual.
 
 # Make Your First Request
 
-Use your wrapped client exactly as you normally would.
-
 ```python
 response = client.responses.create(
     model="gpt-4o-mini",
-    input="Explain AI in one sentence."
+    input="Explain AI in one sentence.",
 )
 
 print(response.output_text)
 ```
 
-WAIL observes the request without requiring you to replace your existing provider SDK or request flow.
+WAIL observes the execution and produces the applicable runtime state and evidence.
 
 ---
 
 # Runtime Summary
 
-After each measured request, WAIL prints a runtime summary showing the observed execution, runtime assessment, and applicable control state.
+After a measured execution, WAIL prints a runtime summary containing the execution identity and applicable runtime state.
 
-The information available in the summary may vary depending on the active plan and the execution outcome.
+The information displayed can vary according to execution type, execution outcome, and active capabilities.
+
+---
+
+# Agent Runs
+
+Existing agent orchestration can execute inside a WAIL Agent Run:
+
+```python
+import wail
+
+with wail.execution_run(
+    attributes={
+        "orchestration": "coordinator_worker",
+    }
+) as run:
+    run_id = run.run_id
+
+    # Existing agent orchestration continues here.
+```
+
+WAIL does not replace the agent framework or orchestration logic.
+
+The Agent Run provides the execution boundary used to connect related agent, model, and MCP tool activity into run-level evidence.
+
+For complete working examples, see:
+
+```text
+examples/multi_agent_mcp_evidence.py
+examples/multi_agent_runtime_recovery_evidence.py
+```
+
+---
+
+# MCP Tool Execution
+
+WAIL can instrument an existing MCP client session:
+
+```python
+from wail.mcp.adapter import wrap_mcp
+
+wrapped_session = wrap_mcp(
+    session,
+    transport="stdio",
+    service="mcp",
+    env="production",
+)
+```
+
+Continue making MCP calls through the wrapped session.
+
+When MCP execution occurs inside an Agent Run, the resulting tool execution can participate in the run-level execution evidence.
+
+For complete MCP client and server setup, see:
+
+```text
+examples/multi_agent_mcp_evidence.py
+examples/multi_agent_mcp_server.py
+```
+
+---
+
+# MCP Recovery Routes
+
+Where runtime recovery is enabled, an MCP wrapper can define an alternate tool route:
+
+```python
+wrapped_session = wrap_mcp(
+    session,
+    transport="stdio",
+    service="mcp",
+    env="production",
+    routes={
+        "primary_tool": "backup_tool",
+    },
+)
+```
+
+This makes the alternate tool available to WAIL's runtime recovery path when a reroute decision is produced.
+
+For a complete recovery example, see:
+
+```text
+examples/multi_agent_runtime_recovery_evidence.py
+```
 
 ---
 
 # Inspect Runtime Artifacts
-
-WAIL generates signed runtime evidence according to the capabilities of the active plan.
 
 List runtime incidents:
 
@@ -81,59 +161,47 @@ Inspect a specific runtime trace:
 wail trace show <TRACE_ID>
 ```
 
-For lower-level inspection, the CLI can also expose the underlying trace data where available:
+Inspect the underlying trace data where available:
 
 ```bash
 wail trace show <TRACE_ID> --raw
 ```
 
+Artifact structure is documented in [Artifact Reference](artifact-reference.md).
+
 ---
 
-# Verify Artifact Integrity
+# Verify Runtime Artifact Integrity
 
-WAIL runtime artifacts include cryptographic integrity information and can be verified using the CLI.
-
-Verify an artifact:
+Verify a signed runtime artifact:
 
 ```bash
 wail verify <ARTIFACT_FILE>
 ```
 
-Developer and Pro plans generate technical runtime artifacts:
+Developer and Pro technical runtime artifacts use:
 
-```bash
-wail verify wail_audit/trace_<TRACE_ID>_tech.json
+```text
+wail_audit/trace_<TRACE_ID>_tech.json
 ```
 
-Enterprise generates the full runtime artifact:
+Enterprise full runtime artifacts use:
 
-```bash
-wail verify wail_audit/trace_<TRACE_ID>.json
+```text
+wail_audit/trace_<TRACE_ID>.json
 ```
 
-Successful verification confirms:
+For Agent Run evidence, use the verification path demonstrated by the public Agent/MCP examples.
 
-- artifact integrity
-- signature validity
-- deterministic artifact structure
-
----
-
-# Plan Capabilities
-
-Available runtime control, evidence, governance, retention, and other capabilities depend on the active WAIL plan and license entitlements.
-
-Provider support indicates that WAIL can integrate with that provider. It does not imply that every runtime control or governance capability is enabled on every plan.
+The artifact formats and integrity fields are documented in [Artifact Reference](artifact-reference.md).
 
 ---
 
 # Next Steps
 
-Learn more about how WAIL works.
-
-- [Architecture](architecture.md)
-- [Runtime Control](runtime-control.md)
-- [Runtime Evidence Model](evidence-model.md)
-- [Runtime Artifact Reference](artifact-reference.md)
-- [Provider Integration](provider-integration.md)
-- [CLI Reference](CLI.md)
+- [Architecture](architecture.md) — execution architecture and boundaries
+- [Runtime Control](runtime-control.md) — runtime decisions, intervention, and recovery
+- [Evidence Model](evidence-model.md) — evidence semantics
+- [Artifact Reference](artifact-reference.md) — artifact structures and fields
+- [Provider Integration](provider-integration.md) — provider-specific integration
+- [CLI Reference](CLI.md) — command-line operations

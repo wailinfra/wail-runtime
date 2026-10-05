@@ -1,102 +1,319 @@
-# WAIL Runtime Evidence Model
+# WAIL Evidence Model
 
-Every AI execution observed by WAIL produces runtime evidence.
+WAIL represents observed AI execution as structured and verifiable evidence.
 
-The Runtime Evidence Model defines how observed execution behavior, runtime assessment, decisions, control state, and execution outcomes are represented as structured and verifiable evidence.
+The evidence model preserves the distinction between what was observed, how it was assessed, what was decided, what was applied, and what execution state was ultimately established.
 
-Rather than relying only on raw execution logs, WAIL records meaningful runtime information and preserves the relationship between what was observed, what was assessed, what was decided, and what was executed.
+WAIL evidence exists at two connected scopes:
+
+```text
+Trace Evidence
+      │
+      │ referenced by
+      ▼
+Agent Run Evidence
+```
+
+Trace evidence represents an individual model or MCP execution.
+
+Agent Run evidence represents the connected execution containing multiple execution units and their relationships.
 
 ---
 
-# Evidence Composition
+# Evidence Semantics
 
-Runtime evidence represents the execution across several related dimensions:
+WAIL evidence follows a state-explicit model.
 
-- runtime observations
+```text
+Observed
+   │
+   ▼
+Assessed
+   │
+   ▼
+Decided
+   │
+   ▼
+Applied
+   │
+   ▼
+Verified
+```
+
+These states are not interchangeable.
+
+An observation does not imply an assessment.
+
+An assessment does not imply an intervention.
+
+A decision does not prove that the selected action was applied.
+
+An applied recovery does not prove that recovery succeeded.
+
+Verification records the resulting state only when sufficient evidence exists to establish it.
+
+This distinction is fundamental to the WAIL evidence model.
+
+---
+
+# Trace Evidence
+
+Trace evidence represents one observed runtime execution.
+
+Each trace has its own execution identity and preserves the evidence associated with that execution.
+
+The evidence can represent:
+
+- observed runtime behavior
 - runtime assessment
-- operational decisions
+- operational decision
 - control state
+- execution path
 - execution outcome
-- execution fingerprints
-- cryptographic integrity information
+- deterministic identifiers
+- integrity state
 
-Together, these elements provide a structured record of the execution and WAIL's response to it.
+The trace remains independently meaningful even when it participates in a larger Agent Run.
 
 ---
 
 # Observed Evidence
 
-Runtime evidence begins with behavior observed during execution.
+Observed evidence is information obtained from execution itself.
 
-This can include:
+Examples include execution timing, streaming behavior, errors, timeouts, retry activity, and other runtime measurements.
 
-- execution timing
-- first-token latency
-- streaming behavior
-- retry activity
-- execution errors
-- timeout events
-- other runtime signals
+Observed evidence forms the factual basis for later evaluation.
 
-These observations establish the factual runtime basis of the evidence record.
-
-WAIL distinguishes observed execution behavior from later assessment and decision information so that the evidence preserves both what occurred and how that behavior was interpreted.
+WAIL keeps observation separate from interpretation so that recorded execution behavior can be distinguished from conclusions derived from it.
 
 ---
 
 # Assessment Evidence
 
-Runtime assessment records WAIL's evaluation of the observed execution state.
+Assessment evidence represents WAIL's evaluation of observed execution state.
 
-Assessment evidence can describe:
+It can describe concepts such as:
 
 - execution health
-- deviation severity
+- severity
 - dominant impact surface
 - supporting runtime signals
-- other evaluation results
+- evaluation state
 
-Assessment remains distinct from the operational decision that follows it.
+Assessment evidence remains separate from the operational decision.
 
-This distinction makes it possible to inspect the evidence supporting a decision independently of the action ultimately taken.
+This allows the evidence supporting a decision to be inspected independently of the action selected in response.
 
 ---
 
-# Decision and Control Evidence
+# Decision Evidence
 
-Runtime evidence records both the operational decision and the resulting control state.
+Decision evidence records the operational response selected from the available execution state.
 
-These are separate concepts.
+A decision represents what WAIL determined should happen.
 
-A decision records what WAIL determined should happen based on the available runtime evidence and policy.
+It does not, by itself, establish that the action occurred.
 
-Control evidence records how that decision affected execution, including cases where execution continued without intervention.
+Conceptually:
 
-This distinction allows the evidence record to show:
+```text
+Decision
+   │
+   ├── OBSERVE
+   │
+   ├── RETRY
+   │
+   └── REROUTE
+```
 
-- what WAIL observed
-- how the execution was assessed
-- what WAIL decided
-- whether execution was changed
-- the resulting execution outcome
+The detailed conditions and runtime semantics of these decisions are defined in [Runtime Control](runtime-control.md).
 
-A recorded decision therefore does not, by itself, imply that the corresponding intervention was executed.
+---
+
+# Application Evidence
+
+When an intervention is selected, application evidence records whether the selected control action was subsequently applied.
+
+This creates an explicit distinction:
+
+```text
+Decision Produced
+        ≠
+Recovery Applied
+```
+
+For recovery that affects a subsequent execution, the evidence can connect the source execution that produced the decision with the execution where the recovery action was applied.
+
+The absence of application evidence must not be interpreted as successful recovery.
+
+---
+
+# Verification Evidence
+
+Verification evidence represents the evaluated result of an applied recovery.
+
+The evidence model therefore distinguishes:
+
+```text
+Recovery Selected
+        │
+        ▼
+Recovery Applied
+        │
+        ▼
+Recovery Verified
+```
+
+A verified result requires evidence from the resulting execution.
+
+If verification cannot be performed, the evidence state remains explicitly unavailable or not applicable rather than implying success or failure.
 
 ---
 
 # Execution Evidence
 
-Execution evidence describes the execution path and its outcome.
+Execution evidence preserves the execution path and resulting outcome.
 
-It can preserve information about:
+It distinguishes between concepts such as:
 
-- the requested execution path
-- the effective execution path
-- execution changes
-- provider and model context
-- execution outcome
+```text
+requested execution
+effective execution
+execution transition
+execution outcome
+```
 
-This allows runtime evidence to distinguish between the application's requested execution and the execution that actually occurred.
+This allows WAIL to preserve the difference between what the application requested and what ultimately executed.
+
+---
+
+# Agent Run Evidence
+
+Agent Run evidence represents execution at a scope above an individual trace.
+
+It binds related execution units and relationships into a single run-level evidence record.
+
+```text
+Agent Run
+   │
+   ├── Agent Unit
+   │
+   ├── Model Unit ───── Trace Evidence
+   │
+   ├── MCP Tool Unit ── Trace Evidence
+   │
+   └── Relations
+```
+
+The Agent Run does not replace the underlying trace evidence.
+
+Instead, it preserves information that cannot be represented by an isolated trace alone: which executions belonged to the same run and how those executions were related.
+
+---
+
+# Evidence Relationships
+
+Agent Run evidence preserves relationships between execution units.
+
+A relationship is evidence about execution structure.
+
+For example:
+
+```text
+Agent A ── delegates ──> Agent B
+
+Agent B ── calls ──────> Model Unit
+
+Agent B ── calls ──────> MCP Tool Unit
+```
+
+These relationships allow the evidence record to preserve execution structure without copying the complete contents of every underlying trace into the Agent Run artifact.
+
+---
+
+# Run-Level Evidence
+
+Some execution state can only be evaluated with context from the larger run.
+
+Run-level evidence can therefore represent state associated with areas such as:
+
+- execution pathology
+- causal attribution
+- execution localization
+- execution propagation
+- runtime recovery
+- recovery verification
+
+Run-level conclusions remain distinct from trace-level observations.
+
+A conclusion at one level must not silently overwrite or reinterpret evidence at the other level.
+
+---
+
+# Evidence Availability
+
+Not every evidence component is available for every execution.
+
+WAIL preserves this explicitly.
+
+Depending on context, an evidence component can be:
+
+```text
+evaluated
+not_evaluated
+not_applicable
+```
+
+An unavailable conclusion is not equivalent to a negative conclusion.
+
+For example:
+
+```text
+not_evaluated
+```
+
+does not mean:
+
+```text
+no problem detected
+```
+
+and:
+
+```text
+not_applicable
+```
+
+does not mean:
+
+```text
+recovery failed
+```
+
+This prevents absence of evidence from being represented as evidence of absence.
+
+---
+
+# Evidence Linking
+
+Trace and Agent Run evidence are connected through execution identity.
+
+Conceptually:
+
+```text
+RUN_ID
+  │
+  └── Model / MCP Unit
+            │
+            └── TRACE_ID
+```
+
+`TRACE_ID` identifies the individual runtime execution.
+
+`RUN_ID` identifies the connected Agent Run.
+
+This relationship allows detailed runtime evidence to remain independently addressable while preserving its run-level context.
 
 ---
 
@@ -104,60 +321,109 @@ This allows runtime evidence to distinguish between the application's requested 
 
 Determinism applies to WAIL's evaluation and decision process.
 
-Given the same runtime evidence, execution state, policy, and control conditions, WAIL produces the same runtime assessment and operational decision.
+Given the same relevant runtime evidence, execution state, policy, and control conditions, WAIL produces the same assessment and operational decision.
 
-Execution-specific observations can naturally differ between separate AI requests. Values such as measured latency, timestamps, trace identifiers, hashes, and signatures describe a particular execution and are not expected to be identical across separate executions.
+Execution-specific observations are not expected to be identical across separate executions.
 
-This distinction allows WAIL to preserve real runtime observations while maintaining deterministic assessment and decision behavior.
+Values such as:
+
+- measured latency
+- timestamps
+- execution identifiers
+- hashes
+- signatures
+
+describe a particular execution and can naturally differ between requests.
+
+Deterministic evaluation therefore does not require identical runtime observations.
 
 ---
 
 # Standardization
 
-WAIL represents supported AI providers through a consistent runtime evidence model.
+WAIL normalizes supported execution surfaces into a consistent evidence model.
 
-Provider-specific execution details are normalized into a common evidence structure so that runtime behavior can be inspected and evaluated consistently across supported providers.
+Provider-specific and execution-specific details can differ while preserving the same semantic separation between:
 
-The evidence available in a particular artifact can vary according to execution context and enabled capabilities without changing the underlying evidence model.
+```text
+Observation
+Assessment
+Decision
+Application
+Verification
+Outcome
+Integrity
+```
+
+Agent Run evidence extends this model with execution relationships and run-level state without changing the meaning of the underlying trace evidence.
 
 ---
 
 # Integrity
 
-Runtime evidence includes cryptographic integrity information.
+Integrity evidence binds a generated evidence record to its recorded state.
 
-Integrity protection binds the generated artifact to the evidence it contains and allows later modification to be detected.
+Cryptographic protection allows later modification of signed evidence to be detected.
 
-This makes the evidence suitable for independent verification rather than requiring trust in an unverified runtime log.
+Integrity applies to the evidence record itself; it does not convert an unavailable or unevaluated runtime conclusion into an established one.
 
----
-
-# Verification
-
-Generated runtime artifacts can be independently verified.
-
-Verification can confirm:
-
-- artifact integrity
-- signature validity
-- deterministic artifact structure
-
-Artifact structure and verification commands are documented separately in the Runtime Artifact Reference and CLI Reference.
+Artifact-specific integrity fields and verification mechanisms are documented in [Artifact Reference](artifact-reference.md).
 
 ---
 
 # Evidence and Governance
 
-Runtime evidence provides the factual foundation for additional governance capabilities where enabled.
+Execution evidence is the factual input to governance capabilities where those capabilities are enabled.
 
-Governance information can build on the same observed execution, assessment, decision, control, and outcome evidence without changing the underlying runtime record.
+```text
+Execution Evidence
+        │
+        ▼
+Governance Context
+```
 
-This separation allows runtime evidence to remain the execution record while governance provides additional lifecycle, obligation, and compliance context.
+Governance can associate additional lifecycle, obligation, regulatory, or compliance context with execution evidence.
+
+It does not alter the underlying observed execution record.
+
+---
+
+# Core Evidence Invariants
+
+The WAIL evidence model maintains the following invariants:
+
+1. **Observation is distinct from assessment.**
+2. **Assessment is distinct from decision.**
+3. **Decision is distinct from application.**
+4. **Application is distinct from verification.**
+5. **Unavailable evidence is not interpreted as a negative result.**
+6. **Trace evidence remains distinct from Agent Run evidence.**
+7. **Run-level conclusions do not replace underlying trace evidence.**
+8. **Execution relationships are preserved explicitly.**
+9. **Signed evidence protects recorded state without changing its semantics.**
 
 ---
 
 # Summary
 
-The WAIL Runtime Evidence Model defines how observed AI execution is represented as structured, deterministic, and cryptographically verifiable evidence.
+WAIL evidence preserves execution state without collapsing distinct stages into a single result.
 
-It preserves the relationship between runtime observations, assessment, operational decisions, control state, and execution outcome while maintaining a consistent evidence model across supported AI providers.
+At the individual execution level, Trace Evidence records runtime observation, assessment, decision, control, and outcome.
+
+At the connected execution level, Agent Run Evidence records execution units, relationships, run-level state, and links to the underlying traces.
+
+Across both levels, WAIL preserves a common principle:
+
+```text
+what was observed
+        ≠
+what was assessed
+        ≠
+what was decided
+        ≠
+what was applied
+        ≠
+what was verified
+```
+
+This separation allows WAIL execution evidence to remain explicit, inspectable, and independently verifiable.

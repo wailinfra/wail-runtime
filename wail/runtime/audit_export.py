@@ -339,18 +339,28 @@ def export_audit_artifact(
     from_model = execution_target.get("from_model")
     to_model = execution_target.get("to_model")
 
-  
     if not from_model:
         from_model = input_payload.get("model")
 
     if not to_model:
         to_model = execution_target.get("model")
 
-    execution_changed = (
+    invocation_context = input_payload.get("invocation_context") or {}
+    control_executed = invocation_context.get("_control_executed") is True
+    control_action = invocation_context.get("_control_action")
+
+    target_changed = bool(
         from_model is not None
         and to_model is not None
         and from_model != to_model
-    )    
+    )
+
+    reroute_applied = bool(
+        control_executed
+        and control_action == "reroute"
+    )
+
+    execution_changed = target_changed or reroute_applied 
 
   
     artifact = {
@@ -367,7 +377,7 @@ def export_audit_artifact(
             "initial_model": from_model or input_payload.get("model"),
             "final_provider": execution_target.get("to_provider") or execution_target.get("provider"),
             "final_model": to_model,
-            "rerouted": execution_changed,
+            "rerouted": reroute_applied or target_changed,
             "intervened": execution_changed,
         },
         "execution_target": execution_target,
@@ -513,21 +523,43 @@ def export_audit_artifact(
     from_m = execution_target.get("from_model")
     to_m = execution_target.get("to_model")
 
-    execution_changed = (
+    invocation_context = (
+        artifact.get("metadata", {}).get("invocation_context") or {}
+    )
+
+    control_executed = invocation_context.get("_control_executed") is True
+    control_action = invocation_context.get("_control_action")
+
+    target_changed = bool(
         from_m is not None
         and to_m is not None
         and from_m != to_m
     )
 
-    artifact["execution"]["intervened"] = execution_changed
-    artifact["execution"]["rerouted"] = execution_changed
+    reroute_applied = bool(
+        control_executed
+        and control_action == "reroute"
+    )
 
-    if execution_changed:
+    execution_changed = target_changed or reroute_applied
+
+    artifact["execution"]["intervened"] = execution_changed
+    artifact["execution"]["rerouted"] = reroute_applied or target_changed
+
+    if target_changed:
         artifact["execution"]["final_model"] = to_m
-        artifact["execution"]["final_provider"] = execution_target.get("to_provider")
+        artifact["execution"]["final_provider"] = (
+            execution_target.get("to_provider")
+            or execution_target.get("provider")
+            or artifact["execution"].get("final_provider")
+        )
 
         artifact["metadata"]["model"] = to_m
-        artifact["metadata"]["provider"] = execution_target.get("to_provider")
+        artifact["metadata"]["provider"] = (
+            execution_target.get("to_provider")
+            or execution_target.get("provider")
+            or artifact["metadata"].get("provider")
+        )
   
     tech_artifact = build_tech_artifact(artifact)
     tech_path = str(output_path).replace(".json", "_tech.json")

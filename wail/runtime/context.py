@@ -27,9 +27,7 @@ from wail.core.fingerprint import (
 )
 from wail_private import runtime_decision_store
 from wail_private.licensing.license import load_license, LicenseError
-from wail_private.licensing.license_notice import (
-    show_downgrade_notice_if_needed,
-)
+from wail_private.licensing.license_notice import show_downgrade_notice_if_needed
 from wail_private.governance_gate import (
     apply_governance_if_entitled,
     attach_incident_regime_if_entitled,
@@ -40,6 +38,12 @@ from wail_private.recovery_engine import (
 )
 
 from wail.runtime_config import _runtime_config
+from wail.execution.bridge import (
+    bind_runtime_trace,
+    complete_runtime_trace,
+    current_parent_agent_name,
+)
+from wail_private.execution.runtime_control_evidence import RuntimeControlEvidenceStore
 
 
 
@@ -219,7 +223,14 @@ def wail_start(
     parent_frame = _current_trace.get()
     parent_span_id = parent_frame.get("span_id") if parent_frame else None
 
-    invocation_context = dict(_runtime_config)
+    runtime_context = dict(_runtime_config)
+
+    if invocation_context:
+        runtime_context.update(
+            dict(invocation_context)
+        )
+
+    invocation_context = runtime_context
     sampling_params = sampling_params or {}
 
     request_surface = {
@@ -235,8 +246,12 @@ def wail_start(
     }
 
     request_fingerprint = build_request_fingerprint(request_surface)
+    parent_agent_name = current_parent_agent_name()
 
     frame = {
+
+        "_parent_frame": parent_frame,
+
         # =========================
         # TRACE
         # =========================
@@ -252,6 +267,7 @@ def wail_start(
         "provider": provider,
         "model": model,
         "execution_target": None,
+        "parent_agent_name": parent_agent_name,
 
         # =========================
         # ORIGINAL EXECUTION
@@ -278,10 +294,30 @@ def wail_start(
         "output_token_count": 0,
         "error_flag": False,
         "timeout_flag": False,
+        "interrupted_flag": False,
         "stream_surface": {},
         "ttft_watcher": None,
     }
     _current_trace.set(frame)
+
+    try:
+        execution_kind = (
+            invocation_context.get("type")
+            or "model"
+        )
+
+        bind_runtime_trace(
+            trace_id=trace_id,
+            span_id=span_id,
+            parent_span_id=parent_span_id,
+            kind=execution_kind,
+            name=model,
+        )
+    except Exception:
+        logger.exception(
+            "WAIL execution instrumentation failed during trace binding; "
+            "continuing runtime request without execution binding"
+        )
 
     return trace_id
 
@@ -338,6 +374,18 @@ def wail_retry():
     if frame:
         frame["retry_count"] += 1
 
+def mark_runtime_error():
+    frame = _current_trace.get()
+    if frame:
+        frame["error_flag"] = True
+
+
+def mark_runtime_interrupted():
+    frame = _current_trace.get()
+    if frame:
+        frame["error_flag"] = True
+        frame["interrupted_flag"] = True
+
 
 def mark_first_token():
 
@@ -385,16 +433,12 @@ def wail_end(ctx=None):
 
     frame = ctx or _current_trace.get()
 
-    if not LICENSE_VALID:
-        frame = _current_trace.get()
-
-        if isinstance(frame, dict):
-            frame["degraded_mode"] = True
-
-    frame = _current_trace.get()
-
     if not frame or not isinstance(frame, dict):
         return
+
+    if not LICENSE_VALID:
+        frame["degraded_mode"] = True
+
     try:
         end = time.perf_counter()
 
@@ -429,6 +473,7 @@ def wail_end(ctx=None):
             "retry_count": frame["retry_count"],
             "error_flag": frame["error_flag"],
             "timeout_flag": frame["timeout_flag"],
+            "interrupted_flag": frame["interrupted_flag"],
             "stream_surface": dict(frame["stream_surface"]),
         }
         trace_fingerprint = build_trace_fingerprint(runtime_surface)
@@ -456,6 +501,7 @@ def wail_end(ctx=None):
             "provider": frame["provider"],
             "transport": frame["transport"],
             "invocation_context": frame["invocation_context"],
+            "parent_agent_name": frame.get("parent_agent_name"),
 
             "metadata": {
                 "trace_id": frame["trace_id"],
@@ -657,11 +703,33 @@ def wail_end(ctx=None):
 
         trace["effective_execution_decision"] = dict(runtime_decision)
 
+        RuntimeControlEvidenceStore.get_instance().save(
+            trace_id=trace["trace_id"],
+            decision=runtime_decision,
+        )
+
         if (
             control_allowed
-            and runtime_decision.get("decision") in ("retry", "reroute", "fallback")
+            and runtime_decision.get("decision") in ("retry", "reroute")
         ):
-            runtime_decision_store.save(runtime_decision)
+            pending_runtime_decision = dict(runtime_decision)
+            pending_runtime_decision["_source_trace_id"] = trace["trace_id"]
+
+            decision_context = (
+                trace.get("invocation_context")
+                or {}
+            )
+
+            decision_surface = (
+                "tool"
+                if decision_context.get("type") == "tool"
+                else "model"
+            )
+
+            runtime_decision_store.save(
+                pending_runtime_decision,
+                surface=decision_surface,
+            )
 
         apply_governance_if_entitled(_ACTIVE_PLAN, trace)
 
@@ -672,9 +740,23 @@ def wail_end(ctx=None):
         execution_target = trace.get("execution_target") or {}
         from_m = execution_target.get("from_model")
         to_m = execution_target.get("to_model")
-        execution_changed = False
-        if from_m and to_m and from_m != to_m:
-            execution_changed = True
+
+        invocation_context = trace.get("invocation_context") or {}
+        control_executed = invocation_context.get("_control_executed") is True
+        control_action = invocation_context.get("_control_action")
+
+        target_changed = bool(
+            from_m
+            and to_m
+            and from_m != to_m
+        )
+
+        reroute_applied = bool(
+            control_executed
+            and control_action == "reroute"
+        )
+
+        execution_changed = target_changed or reroute_applied
 
         trace["execution"] = {
             "initial_provider": execution_target.get("from_provider") or trace.get("provider"),
@@ -682,12 +764,16 @@ def wail_end(ctx=None):
             "final_provider": execution_target.get("to_provider") or trace.get("provider"),
             "final_model": to_m or trace.get("model"),
             "intervened": execution_changed,
-            "rerouted": execution_changed,
+            "rerouted": reroute_applied or target_changed,
         }
 
-        if execution_changed and "metadata" in trace:
+        if target_changed and "metadata" in trace:
             trace["metadata"]["model"] = to_m
-            trace["metadata"]["provider"] = execution_target.get("to_provider")
+            trace["metadata"]["provider"] = (
+                execution_target.get("to_provider")
+                or execution_target.get("provider")
+                or trace.get("provider")
+            )
        
 
         ctx = trace["metadata"].get("invocation_context", {})
@@ -737,7 +823,23 @@ def wail_end(ctx=None):
         from wail_private.telemetry.client import trigger_telemetry
         trigger_telemetry()
 
-        _current_trace.set(None)
+        try:
+            complete_runtime_trace(
+                failed=bool(
+                    frame.get("error_flag")
+                    or frame.get("timeout_flag")
+                    or frame.get("interrupted_flag")
+                )
+            )
+        except Exception:
+            logger.exception(
+                "WAIL execution instrumentation failed during trace completion; "
+                "continuing runtime finalization"
+            )
+        finally:
+            _current_trace.set(
+                frame.get("_parent_frame")
+            )
 
 
 @contextmanager
@@ -758,7 +860,11 @@ def wail_inference(
     try:
         yield
     except Exception:
+        mark_runtime_error()
         wail_retry()
+        raise
+    except BaseException:
+        mark_runtime_interrupted()
         raise
     finally:
         wail_end()
@@ -772,6 +878,8 @@ __all__ = [
     "emit_event",
     "append_event",
     "mark_first_token",
+    "mark_runtime_error",
+    "mark_runtime_interrupted",
     "wail_retry",
     "get_current_trace_id",
 ]

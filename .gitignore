@@ -15,6 +15,7 @@ traces/
 # -----------------------------
 wail.license
 wail_trial.lock
+wail_config.json
 
 # -----------------------------
 # SENSITIVE / LOCAL
@@ -92,8 +93,15 @@ python
 cython_native/
 cython_poc/
 native_test/
-release_staging/
+release_staging*/
+baseline_fix/
+wail_prognostic*/
 cython_build_one_by_one.py
+repair_*.py
+install_wail_continuation*.py
+windows_*.py
+windows_*.json
+KURULUM_TR.md
 
 # -----------------------------
 # LOCAL SECRETS

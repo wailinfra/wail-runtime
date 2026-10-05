@@ -300,6 +300,35 @@ def render_runtime_summary(trace, plan):
     provider = metadata.get("provider")
     model = metadata.get("model")
 
+    invocation_context = trace.get("invocation_context") or {}
+    execution_type = str(
+        invocation_context.get("type") or "model"
+    ).strip().lower()
+    parent_agent_name = trace.get("parent_agent_name")
+
+    if execution_type == "tool":
+        identity_rows = [
+            ("Execution Type", "MCP Tool"),
+        ]
+        if parent_agent_name:
+            identity_rows.append(("Agent", _fmt(parent_agent_name)))
+        identity_rows.append(("Tool", _fmt(model)))
+    elif execution_type == "agent":
+        identity_rows = [
+            ("Execution Type", "Agent"),
+            ("Agent", _fmt(model)),
+        ]
+    else:
+        identity_rows = [
+            ("Execution Type", "Model"),
+        ]
+        if parent_agent_name:
+            identity_rows.append(("Agent", _fmt(parent_agent_name)))
+        identity_rows.extend([
+            ("Provider", _fmt(provider)),
+            ("Model", _fmt(model)),
+        ])
+
     ttft = runtime.get("first_token_latency_ms")
     duration = runtime.get("duration_ms")
 
@@ -382,8 +411,7 @@ def render_runtime_summary(trace, plan):
 
     rows = [
         ("Plan", normalized_plan.capitalize()),
-        ("Provider", _fmt(provider)),
-        ("Model", _fmt(model)),
+        *identity_rows,
 
         None,
 
@@ -440,6 +468,59 @@ def render_runtime_summary(trace, plan):
             f"SAVED · {trace_id}" if trace_id else "SAVED",
         )
     )
+
+    _print_rows(
+        rows,
+        timestamp,
+    )
+
+def render_agent_run_summary(
+    state,
+    plan = None,
+    *,
+    evidence_saved=False,
+):
+    units = tuple(state.units.values())
+
+    agent_units = sum(
+        1 for unit in units
+        if unit.kind == "agent"
+    )
+
+    if agent_units == 0:
+        return
+
+    model_units = sum(
+        1 for unit in units
+        if unit.kind == "model"
+    )
+    tool_units = sum(
+        1 for unit in units
+        if unit.kind == "tool"
+    )
+
+    normalized_plan = str(
+        plan or "developer"
+    ).strip().lower()
+
+    timestamp = datetime.now().strftime("%H:%M:%S")
+
+    rows = [
+        ("Plan", normalized_plan.capitalize()),
+        ("Execution Type", "Agent Run"),
+        ("Run", state.run_id),
+        None,
+        ("Agent Units", str(agent_units)),
+        ("Model Units", str(model_units)),
+        ("MCP Tool Units", str(tool_units)),
+        ("Relations", str(len(state.relations))),
+        None,
+        ("Status", str(state.status).upper()),
+        (
+            "Signed Evidence",
+            "SAVED" if evidence_saved else "--",
+        ),
+    ]
 
     _print_rows(
         rows,

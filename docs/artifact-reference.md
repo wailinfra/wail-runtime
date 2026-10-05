@@ -1,19 +1,24 @@
-# WAIL Runtime Artifact Reference
+# WAIL Artifact Reference
 
-WAIL records AI execution as structured, signed runtime evidence.
+WAIL records execution state as structured, signed evidence.
 
-Runtime artifacts provide a standardized representation of observed execution behavior, runtime assessment, operational decisions, control outcomes, and integrity information.
-
-WAIL uses two artifact surfaces:
-
-- technical runtime artifacts
-- full runtime artifacts
-
-The artifact surface available depends on the active plan and execution context.
+This reference describes the artifact surfaces produced by WAIL and the information represented by each artifact type.
 
 ---
 
 # Artifact Types
+
+WAIL has three evidence surfaces:
+
+| Artifact | Scope | File |
+|---|---|---|
+| Technical Runtime Artifact | Individual model or MCP execution | `trace_<TRACE_ID>_tech.json` |
+| Full Runtime Artifact | Individual execution with extended governance evidence | `trace_<TRACE_ID>.json` |
+| Agent Run Evidence | Connected agent execution graph | `agent_run_<RUN_ID>.json` |
+
+Artifact availability depends on the active plan and execution context.
+
+---
 
 ## Technical Runtime Artifact
 
@@ -23,9 +28,25 @@ Developer and Pro generate technical runtime artifacts.
 trace_<TRACE_ID>_tech.json
 ```
 
-Technical artifacts contain the runtime evidence needed to inspect execution behavior, assessment, decisions, control state, execution outcome, and cryptographic integrity.
+A technical runtime artifact represents one observed execution.
 
-They intentionally exclude the additional governance and compliance evidence available in the full artifact.
+It can contain:
+
+- execution identity
+- runtime measurements
+- baseline and statistical context
+- detected runtime signals
+- runtime assessment
+- runtime decision
+- control state
+- execution target
+- execution outcome
+- deterministic identifiers
+- cryptographic integrity information
+
+Technical artifacts intentionally exclude the additional governance and compliance evidence available in the full runtime artifact.
+
+---
 
 ## Full Runtime Artifact
 
@@ -35,277 +56,537 @@ Enterprise can generate the full runtime artifact.
 trace_<TRACE_ID>.json
 ```
 
-The full artifact extends runtime evidence with additional incident, governance, obligation, lifecycle, and compliance information where applicable.
+The full runtime artifact extends individual execution evidence with additional governance and compliance information where applicable.
+
+This can include:
+
+- incident information
+- obligations
+- escalation state
+- enforcement state
+- governance lifecycle
+- impact information
+- additional compliance evidence
+
+The full artifact remains associated with a single `TRACE_ID`.
 
 ---
 
-# Artifact Structure
+## Agent Run Evidence
 
-Runtime artifacts are composed of structured sections representing different parts of the execution and evidence lifecycle.
+Agent Run evidence represents a connected agent execution.
 
-Depending on the artifact type and execution outcome, these can include:
+```text
+agent_run_<RUN_ID>.json
+```
 
-- metadata
-- execution
-- execution_target
-- content_proof
-- runtime
-- statistics
-- drift_analysis
-- risk
-- decision_snapshot
-- incident
-- obligation
-- escalation
-- enforcement
-- governance
-- impact
-- pre_incident
-- control
-- execution_flow
-- recommended_action
-- determinism
-- integrity
+Unlike trace artifacts, which represent individual model or MCP executions, Agent Run evidence records the larger execution graph containing those executions.
 
-Not every section is present in every artifact type or execution.
+An Agent Run artifact can contain:
+
+- Run ID
+- run status
+- run attributes
+- Agent Units
+- Model Units
+- MCP Tool Units
+- execution relationships
+- underlying Trace IDs
+- baseline state
+- run-level intelligence
+- runtime recovery state
+- recovery verification state
+- integrity information
+
+A Model Unit or MCP Tool Unit can reference its underlying runtime `TRACE_ID`, linking run-level evidence to individual runtime evidence.
 
 ---
 
-# Metadata
+# Runtime Artifact Structure
 
-Metadata identifies the execution and its runtime context.
+Technical and full runtime artifacts use structured sections representing different parts of an individual execution.
 
-It can include information such as:
+Depending on artifact type and execution outcome, sections can include:
 
-- trace_id
-- timestamp
-- provider
-- model
-- execution context
+```text
+metadata
+execution
+execution_target
+content_proof
+runtime
+statistics
+drift_analysis
+risk
+decision_snapshot
+incident
+obligation
+escalation
+enforcement
+governance
+impact
+pre_incident
+control
+execution_flow
+recommended_action
+determinism
+integrity
+```
 
-This information associates the artifact with the execution it represents.
+Not every section is present in every artifact.
 
 ---
 
-# Execution
+## Metadata
 
-Execution information describes how the request was executed.
+`metadata` identifies the execution and its runtime context.
+
+Typical information includes:
+
+```text
+trace_id
+timestamp
+provider
+model
+execution context
+```
+
+---
+
+## Execution
+
+`execution` records the execution path and resulting execution state.
 
 It can identify:
 
-- initial execution path
-- final execution path
-- provider
-- model
-- whether execution changed
-- execution outcome
+```text
+initial execution path
+final execution path
+provider
+model
+execution changed
+execution outcome
+```
 
-This makes it possible to distinguish the requested execution path from the path that ultimately handled the request.
-
----
-
-# Execution Target
-
-When runtime control evaluates an alternative execution path, target information records the relevant execution relationship.
-
-This can describe:
-
-- source provider or model
-- target provider or model
-- execution transition
-
-Execution target information provides context for control decisions without implying that every evaluated target was executed.
+This allows the artifact to distinguish the requested execution path from the path that ultimately handled the request.
 
 ---
 
-# Runtime
+## Execution Target
 
-Runtime evidence captures behavior observed during execution.
-
-Recorded information can include:
-
-- execution duration
-- first-token latency
-- token counts
-- streaming behavior
-- retry activity
-- timeout state
-- execution errors
-- other runtime measurements
-
-These values describe the observed behavior of the request.
-
----
-
-# Statistics
-
-Statistical evidence provides the historical execution context used for runtime evaluation.
+`execution_target` records the relevant source and target execution paths when runtime control evaluates or applies an alternative.
 
 It can include:
 
-- baseline measurements
-- latency statistics
-- first-token statistics
-- sample information
-- other historical runtime characteristics
+```text
+source provider
+source model
+target provider
+target model
+execution transition
+```
 
-These statistics provide the comparison context for current execution behavior.
+The presence of a target does not by itself imply that the target was executed.
 
 ---
 
-# Drift Analysis
+## Runtime
 
-Drift analysis records deviations detected between current runtime behavior and historical execution behavior.
+`runtime` contains measurements observed during execution.
+
+Depending on execution type, these can include:
+
+```text
+duration
+first-token latency
+token counts
+streaming measurements
+retry activity
+timeout state
+execution errors
+tool execution measurements
+```
+
+Unavailable measurements can remain absent or null according to the artifact schema.
+
+For example, token-stream measurements are not inherently applicable to MCP tool execution.
+
+---
+
+## Statistics
+
+`statistics` contains historical execution context used during runtime evaluation.
+
+This can include:
+
+```text
+baseline measurements
+latency statistics
+first-token statistics
+sample information
+historical runtime characteristics
+```
+
+Baseline state can also indicate that sufficient observations have not yet been collected.
+
+---
+
+## Drift Analysis
+
+`drift_analysis` records runtime signals and deviations established from the current execution and its comparison context.
 
 It can include:
 
-- detected runtime signals
-- baseline comparison
-- runtime deviation
-- impact information
-- supporting measurements
-
-This section provides evidence for why execution behavior was considered normal or abnormal.
+```text
+runtime signals
+baseline comparison
+runtime deviation
+impact information
+supporting measurements
+```
 
 ---
 
-# Risk
+## Risk
 
-Risk information represents WAIL's structured assessment of the observed runtime condition.
+`risk` represents the structured runtime assessment associated with the execution.
 
 It can include:
 
-- severity
-- risk surfaces
-- dominant impact surface
-- supporting runtime signals
-- assessment results
-
-Risk evidence describes the operational significance of the observed execution state.
-
----
-
-# Runtime Decision
-
-Runtime decisions record the operational response selected from the runtime assessment.
-
-Decision-related evidence can include:
-
-- decision snapshot
-- control state
-- execution target
-- execution outcome
-
-This allows the artifact to distinguish between what WAIL observed, what it decided, and what was actually executed.
+```text
+severity
+risk surfaces
+dominant impact surface
+supporting signals
+assessment results
+```
 
 ---
 
-# Incident
+## Decision Snapshot
 
-Where available, incident information records the operational classification associated with abnormal runtime behavior.
+`decision_snapshot` preserves the runtime decision state associated with the execution.
+
+It can contain information used to distinguish:
+
+```text
+observed runtime state
+selected runtime decision
+decision reason
+control availability
+baseline state at decision time
+```
+
+The exact decision and control semantics are documented in [Runtime Control](runtime-control.md).
+
+---
+
+## Control
+
+`control` records runtime-control state associated with the execution.
+
+Depending on the execution, this can distinguish states such as:
+
+```text
+no intervention
+control prepared
+control executed
+```
+
+This section should not be interpreted independently of the execution and decision state.
+
+---
+
+## Incident
+
+Where available, `incident` records structured incident information associated with abnormal runtime behavior.
 
 It can include:
 
-- incident classification
-- severity
-- dominant impact surface
-- trigger signals
-- supporting evidence
-
-Incident evidence provides structured context for significant runtime events.
-
----
-
-# Obligation
-
-Where governance and compliance capabilities are enabled, obligation information can associate runtime evidence with applicable requirements.
-
-It can include:
-
-- regulatory context
-- reporting requirements
-- retention requirements
-- disclosure requirements
-- other applicable obligations
-
-This information connects runtime evidence with governance requirements where applicable.
+```text
+incident classification
+severity
+dominant impact surface
+trigger signals
+supporting evidence
+```
 
 ---
 
-# Escalation
+## Obligation
 
-Escalation information records whether runtime conditions resulted in an elevated operational state.
+Where governance capabilities are available, `obligation` can associate runtime evidence with applicable requirements.
 
 It can include:
 
-- escalation status
-- incident context
-- resulting control state
-- supporting evidence
+```text
+regulatory context
+reporting requirements
+retention requirements
+disclosure requirements
+applicable obligations
+```
 
 ---
 
-# Governance
+## Escalation
 
-Where governance capabilities are enabled, governance information can record the lifecycle associated with an incident.
+`escalation` can record whether an execution entered an elevated operational state.
 
 It can include:
 
-- incident identity
-- governance state
-- lifecycle information
-- applicable deadlines
-
-This provides governance context alongside the underlying runtime evidence.
+```text
+escalation status
+incident context
+resulting control state
+supporting evidence
+```
 
 ---
 
-# Determinism
+## Governance
 
-Determinism information contains fingerprints and identifiers derived from execution evidence.
+Where governance capabilities are available, `governance` records governance state associated with the runtime evidence.
 
 It can include:
 
-- request fingerprint
-- trace fingerprint
-- prompt hash
-
-These values support consistent identification and verification of recorded execution state.
-
-`prompt_hash` is derived from the prompt for execution evidence. WAIL does not persist the raw prompt as part of runtime evidence.
-
-The deterministic behavior of WAIL's assessment and decision process is described in the Runtime Evidence Model.
+```text
+incident identity
+governance state
+lifecycle information
+applicable deadlines
+```
 
 ---
 
-# Integrity
+## Determinism
 
-Integrity information protects generated runtime evidence against undetected modification.
+`determinism` contains identifiers and fingerprints derived from execution evidence.
 
 It can include:
 
-- artifact hash
-- state hash
-- signature
-- public key fingerprint
-- integrity metadata
+```text
+request_fingerprint
+trace_fingerprint
+prompt_hash
+```
 
-WAIL uses cryptographic signatures to make generated runtime evidence independently verifiable.
+`prompt_hash` is derived from the prompt used for execution evidence.
+
+WAIL does not persist the raw prompt as part of runtime evidence.
+
+---
+
+## Integrity
+
+`integrity` contains cryptographic integrity information for the generated artifact.
+
+Depending on the artifact, this can include:
+
+```text
+artifact hash
+state hash
+signature
+public key fingerprint
+signature algorithm
+integrity metadata
+```
+
+Signed WAIL evidence uses SHA-256 hashing and RSA-PSS-SHA256 signatures where applicable.
+
+---
+
+# Agent Run Artifact Structure
+
+Agent Run evidence uses a separate run-level structure.
+
+Its purpose is to preserve the connected execution rather than duplicate every field from the underlying runtime traces.
+
+---
+
+## Run Identity
+
+The artifact identifies the Agent Run using its `run_id`.
+
+Run-level state can also include:
+
+```text
+status
+sequence
+attributes
+baseline state
+```
+
+The run identity is separate from the `trace_id` values associated with individual model and MCP executions.
+
+---
+
+## Units
+
+The run contains execution units.
+
+Current unit types include:
+
+```text
+Agent Unit
+Model Unit
+MCP Tool Unit
+```
+
+Each unit preserves its identity and execution state within the run.
+
+Model and MCP Tool Units can reference their underlying runtime trace.
+
+Conceptually:
+
+```text
+Agent Run
+    │
+    ├── Agent Unit
+    │       │
+    │       ├── Model Unit
+    │       │       └── trace_id
+    │       │
+    │       └── MCP Tool Unit
+    │               └── trace_id
+    │
+    └── ...
+```
+
+---
+
+## Relations
+
+Relations describe execution relationships between units.
+
+Current relationship kinds include:
+
+```text
+calls
+delegates
+joins
+```
+
+A relation identifies the participating execution units and the relationship between them.
+
+Relations preserve execution structure without requiring the Agent Run artifact to duplicate the underlying trace artifacts.
+
+---
+
+## Run-Level Intelligence
+
+Agent Run evidence can contain run-level intelligence state for:
+
+```text
+execution pathology
+causal attribution
+execution localization
+execution propagation
+runtime recovery
+recovery verification
+```
+
+These fields preserve explicit state.
+
+When prerequisites are unavailable, a component can remain:
+
+```text
+not_evaluated
+```
+
+or:
+
+```text
+not_applicable
+```
+
+rather than implying that an evaluation occurred.
+
+---
+
+## Recovery State
+
+Where runtime recovery occurs, Agent Run evidence can preserve the relationship between the execution that produced the recovery decision and the execution where recovery was applied.
+
+Recovery evidence can distinguish:
+
+```text
+source execution
+recovery decision
+recovery application
+applied execution
+recovery verification
+```
+
+Detailed recovery semantics are documented in [Runtime Control](runtime-control.md).
+
+---
+
+## Agent Run Integrity
+
+Agent Run evidence contains its own cryptographic integrity information.
+
+Observed Agent Run evidence includes:
+
+```text
+evidence hash
+public key fingerprint
+signature
+signature algorithm
+```
+
+Signed Agent Run evidence uses:
+
+```text
+RSA-PSS-SHA256
+```
+
+The Agent Run signature protects the run-level evidence record independently of the individual runtime traces referenced by the run.
+
+---
+
+# Relationship Between Artifacts
+
+Trace and Agent Run artifacts represent different evidence scopes.
+
+```text
+agent_run_<RUN_ID>.json
+        │
+        ├── Agent Unit
+        │
+        ├── Model Unit
+        │       └── trace_id
+        │              │
+        │              └── trace_<TRACE_ID>_tech.json
+        │
+        └── MCP Tool Unit
+                └── trace_id
+                       │
+                       └── trace_<TRACE_ID>_tech.json
+```
+
+The Agent Run artifact preserves the execution graph.
+
+The referenced trace artifacts preserve the detailed runtime state of individual model and MCP executions.
+
+One does not replace the other.
 
 ---
 
 # Verification
 
-Both technical and full runtime artifacts can be verified using the WAIL CLI.
+Technical and full runtime artifacts can be verified using the WAIL CLI:
 
 ```bash
 wail verify <ARTIFACT_FILE>
 ```
 
-Verification confirms:
+Verification can validate artifact integrity, signature validity, and expected artifact structure.
 
-- artifact integrity
-- signature validity
-- deterministic artifact structure
+Agent Run evidence is also cryptographically signed and can be verified through the Agent Run evidence verification path demonstrated by the public Agent/MCP examples.
 
-For artifact verification examples, see [Getting Started](getting-started.md).
+For complete working Agent Run examples, see:
+
+- `examples/multi_agent_mcp_evidence.py`
+- `examples/multi_agent_runtime_recovery_evidence.py`
+
+For installation and basic runtime artifact verification, see [Getting Started](getting-started.md).
