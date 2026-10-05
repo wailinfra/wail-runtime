@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/wail-logo.png" alt="WAIL" width="650">
+  <img src="https://raw.githubusercontent.com/wailinfra/wail-runtime/main/docs/images/wail-logo.png" alt="WAIL" width="650">
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@ Standard provider runtime reroute applies to the next request and does not perma
 
 ## Architecture
 
-![WAIL Architecture](docs/images/overview-architecture.png)
+![WAIL Architecture](https://raw.githubusercontent.com/wailinfra/wail-runtime/main/docs/images/overview-architecture.png)
 
 WAIL operates around the execution path rather than replacing it.
 
